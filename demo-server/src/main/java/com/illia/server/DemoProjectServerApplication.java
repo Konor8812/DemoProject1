@@ -1,16 +1,14 @@
-package com.illia.demoproject1;
+package com.illia.server;
 
-import org.springframework.boot.SpringApplication;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
-public class DemoProject1Application {
+public class DemoProjectServerApplication {
 
     public static void main(String[] args) {
 //        SpringApplication.run(DemoProject1Application.class, args);
-        new SpringApplicationBuilder().sources(DemoProject1Application.class).run(args);
+        new SpringApplicationBuilder().sources(DemoProjectServerApplication.class).run(args);
     }
-
-
 }
