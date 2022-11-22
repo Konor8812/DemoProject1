@@ -1,13 +1,11 @@
 package com.illia.client.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@ConfigurationProperties(prefix = "client")
+@Data
+@ConfigurationProperties(prefix = "server")
 public class ClientConfig {
+    String port;
     String baseUrl;
-
-    public String getServerBaseUrl() {
-        return baseUrl;
-    }
 }

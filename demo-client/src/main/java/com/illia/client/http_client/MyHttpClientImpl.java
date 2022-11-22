@@ -2,17 +2,21 @@ package com.illia.client.http_client;
 
 
 import com.illia.client.config.ClientConfig;
-import org.apache.tomcat.util.http.parser.HttpParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Path;
 
+
+@Slf4j
 @Component
 public class MyHttpClientImpl implements MyHttpClient {
 
@@ -20,32 +24,52 @@ public class MyHttpClientImpl implements MyHttpClient {
     ClientConfig clientConfig;
 
     @Override
-    public File uploadFile(String fileName, File file) {
+    public String uploadFile(String fileName, File file) {
+
         var operation = "/uploadFile";
         var params = String.format("?fileName=%s", fileName);
-        var url = String.format("%s%s%s", clientConfig.getServerBaseUrl(), operation, params);
-
-        System.out.println(url);
+        var url = createUrl(clientConfig.getBaseUrl(), operation, params);
 
         try {
-            var httpClient = HttpClient.newHttpClient();
-            var request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(Path.of("downloaded.txt")));
-            var body = response.body();
+            var headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-
-            return new File(body.toString());
-        }catch (Exception e){
-            e.printStackTrace();
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", file);
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            var response = restTemplate.postForEntity(url, requestEntity, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            var errorMsg = "Error during file uploading " + e.getMessage();
+            log.error(errorMsg);
+            throw new HttpClientException(errorMsg);
         }
-        return null;
     }
-
 
     @Override
     public File downloadFile(String fileName) {
-        return null;
+        var operation = "/downloadFile";
+        var params = String.format("?fileName=%s", fileName);
+        var url = createUrl(clientConfig.getBaseUrl(), operation, params);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        var fileResponse = restTemplate.getForEntity(url, File.class);
+        var statusCode = fileResponse.getStatusCode();
+
+        var file = fileResponse.getBody();
+
+        if(file == null){
+            log.info("No such file {}", fileName);
+            throw new HttpClientException();
+        }
+        log.info("Download file response code {}, fileName {}", statusCode.value(), file.getName());
+        return file;
     }
 
+    private String createUrl(String baseUrl, String operation, String params) {
+        return String.format("%s%s%s", baseUrl, operation, params);
+    }
 
 }

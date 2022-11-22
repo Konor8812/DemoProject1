@@ -10,5 +10,4 @@ public class DemoProjectClientApplication {
         new SpringApplicationBuilder().sources(DemoProjectClientApplication.class).run(args);
     }
 
-
 }

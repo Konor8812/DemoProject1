@@ -7,5 +7,5 @@ public interface FileHolder {
 
     File getFile(String fileName);
     File saveFile(String fileName, File file);
-
+    int getFilesAmount();
 }
