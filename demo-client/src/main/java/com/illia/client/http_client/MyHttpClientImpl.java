@@ -4,16 +4,23 @@ package com.illia.client.http_client;
 import com.illia.client.config.ClientConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileOutputStream;
+
+import java.io.IOException;
 
 
 @Slf4j
@@ -24,52 +31,55 @@ public class MyHttpClientImpl implements MyHttpClient {
     ClientConfig clientConfig;
 
     @Override
-    public String uploadFile(String fileName, File file) {
+    public ResponseEntity<String> uploadFile(String fileName, MultipartFile mfile) {
+        var operation = SupportedClientOperation.UPLOAD_FILE;
+        var url = String.format(clientConfig.getBaseUrl(), operation, fileName);
 
-        var operation = "/uploadFile";
-        var params = String.format("?fileName=%s", fileName);
-        var url = createUrl(clientConfig.getBaseUrl(), operation, params);
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        try {
-            var headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        var file = new File(fileName);
+        try (var is = mfile.getInputStream();
+             var os = new FileOutputStream(file)) {
+            is.transferTo(os);
             body.add("file", file);
-            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-            RestTemplate restTemplate = new RestTemplate();
-            var response = restTemplate.postForEntity(url, requestEntity, String.class);
-            return response.getBody();
-        } catch (Exception e) {
-            var errorMsg = "Error during file uploading " + e.getMessage();
+        } catch (IOException e) {
+            var errorMsg = "Error during multipart file resolving!";
             log.error(errorMsg);
-            throw new HttpClientException(errorMsg);
+            return ResponseEntity.internalServerError().body(errorMsg);
         }
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.postForEntity(url, requestEntity, String.class);
     }
 
     @Override
-    public File downloadFile(String fileName) {
-        var operation = "/downloadFile";
-        var params = String.format("?fileName=%s", fileName);
-        var url = createUrl(clientConfig.getBaseUrl(), operation, params);
+    public ResponseEntity<File> downloadFile(String fileName) {
+        var operation = SupportedClientOperation.DOWNLOAD_FILE;
+        var url = String.format(clientConfig.getBaseUrl(), operation, fileName);
 
         RestTemplate restTemplate = new RestTemplate();
+        var response = restTemplate.getForEntity(url, File.class);
+        var responseCode = response.getStatusCode();
 
-        var fileResponse = restTemplate.getForEntity(url, File.class);
-        var statusCode = fileResponse.getStatusCode();
+        System.out.println("length");
+        System.out.println(response.getBody().length());
+        if(responseCode.is4xxClientError()){
 
-        var file = fileResponse.getBody();
+        }else if (responseCode.is5xxServerError()){
 
-        if(file == null){
-            log.info("No such file {}", fileName);
-            throw new HttpClientException();
+        } else {
         }
-        log.info("Download file response code {}, fileName {}", statusCode.value(), file.getName());
-        return file;
+        return response;
+
     }
 
-    private String createUrl(String baseUrl, String operation, String params) {
-        return String.format("%s%s%s", baseUrl, operation, params);
+    private static class SupportedClientOperation {
+        private static final String UPLOAD_FILE = "/uploadFile?fileName=";
+        private static final String DOWNLOAD_FILE = "/downloadFile?fileName=";
     }
 
 }

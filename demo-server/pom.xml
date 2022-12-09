@@ -34,29 +34,7 @@
 
     <build>
         <finalName>demo-server</finalName>
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <directory>/src/main/resources</directory>-->
-<!--                <includes>-->
-<!--                    <include>**/*.txt</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
-<!--        </resources>-->
 
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <artifactId>maven-jar-plugin</artifactId>-->
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            <addClasspath>true</addClasspath>-->
-<!--                            <classpathPrefix>lib</classpathPrefix>-->
-<!--                            <mainClass>com.illia.server.DemoProjectServerApplication</mainClass>-->
-<!--                        </manifest>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-<!--        </plugins>-->
     </build>
 
 </project>
