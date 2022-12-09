@@ -2,9 +2,12 @@ package com.illia.server.request_processor;
 
 import com.illia.server.file_holder.FileHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+
 
 @Service
 public class RequestProcessorImpl implements RequestProcessor {
@@ -13,18 +16,42 @@ public class RequestProcessorImpl implements RequestProcessor {
     FileHolder fileHolder;
 
     @Override
-    public File proceedDownloadFile(String fileName) {
-        return fileHolder.getFile(fileName);
+    public ResponseEntity<File> proceedDownloadFile(String fileName) {
+        try {
+            var fileHolderResponse = fileHolder.getFile(fileName);
+            if (fileHolderResponse != null) {
+                return ResponseEntity.ok().body(fileHolderResponse);
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
+        }catch (Exception ex){
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @Override
-    public File proceedSaveFile(String fileName, File file) {
-        return fileHolder.saveFile(fileName, file);
+    public ResponseEntity<String> proceedSaveFile(String fileName, MultipartFile file) {
+        var fileHolderResponse = fileHolder.saveFile(fileName, file);
+        return ResponseEntity.ok().body(fileHolderResponse);
     }
 
     @Override
-    public int getFilesAmount(){
-        return fileHolder.getFilesAmount();
+    public ResponseEntity<String> proceedSaveFile(String fileName, File file) {
+        var fileHolderResponse = fileHolder.saveFile(fileName, file);
+        return ResponseEntity.ok().body(fileHolderResponse);
     }
+
+    @Override
+    public ResponseEntity<Integer> getFilesAmount(){
+        var fileHolderResponse = fileHolder.getFilesAmount();
+        if(fileHolderResponse >= 0){
+            return ResponseEntity.ok().body(fileHolderResponse);
+        } else{
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
+
 
 }

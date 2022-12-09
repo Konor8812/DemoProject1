@@ -1,11 +1,18 @@
 package com.illia.server.request_processor;
 
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 
 public interface RequestProcessor {
 
-    File proceedDownloadFile(String fileName);
-    File proceedSaveFile(String fileName, File file);
-    int getFilesAmount();
+    ResponseEntity<File> proceedDownloadFile(String fileName);
+
+    ResponseEntity<String> proceedSaveFile(String fileName, MultipartFile file);
+    ResponseEntity<String> proceedSaveFile(String fileName, File file);
+
+    ResponseEntity<Integer> getFilesAmount();
+
 }

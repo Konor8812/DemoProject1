@@ -3,10 +3,10 @@ package com.illia.client.controller;
 import com.illia.client.service.DemoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 
@@ -18,25 +18,16 @@ public class DemoClientController {
     @Autowired
     private DemoService demoService;
 
-    @GetMapping("/uploadFile")
-    public String uploadFile(@RequestParam(name = "fileName") String fileName,
-                             @RequestParam(name = "file", required = false) File file) {
-        log.info("Upload file client request {}", fileName);
-        var msg = demoService.uploadFile(fileName, file);
-        return msg;
+    @PostMapping(value = "/uploadFile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<String> uploadFile(@RequestParam(name = "fileName") String fileName,
+                                             @RequestPart MultipartFile file) {
+        log.info("Upload file client request: {}", fileName);
+        return demoService.uploadFile(fileName, file);
     }
-
 
     @GetMapping("/downloadFile")
-    public String downloadFile(@RequestParam(name = "fileName") String fileName) {
-        log.info("Download file client request {}", fileName);
-        //
-
-        var file = demoService.downloadFile(fileName);
-
-        //
-        var msg = file == null? "File wasn't downloaded, no such file stored on server : " + fileName : "File downloaded " + file.getName();
-        return msg;
+    public ResponseEntity<File> downloadFile(@RequestParam(name = "fileName") String fileName) {
+        log.info("download file client request: {}", fileName);
+        return demoService.downloadFile(fileName);
     }
-
 }
