@@ -55,7 +55,6 @@ public class FileHolderImpl implements FileHolder {
         try {
             var path = Path.of(prefix + fileName);
             var updatedExisting = Files.deleteIfExists(path);
-//            file.renameTo(path.toFile());
             Files.move(file.toPath(), path);
             savedFiles.put(fileName, path.toFile());
 

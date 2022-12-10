@@ -1,6 +1,7 @@
 package com.illia.server;
 
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,17 +27,7 @@ public class DemoProjectServerApplication {
     CommandLineRunner runner(){
         return args ->{
             var directoryPath = Path.of("demo-server/savedFiles/");
-            if(directoryPath.toFile().exists()) {
-                Files.walk(directoryPath).forEach(file -> {
-                    if(!file.equals(directoryPath))
-                    try {
-                        Files.delete(file);
-                    } catch (IOException e) {
-                        // mostly occurs if folder isn't empty
-                    }
-                });
-                Files.delete(directoryPath);
-            }
+            FileUtils.deleteDirectory(directoryPath.toFile());
             Files.createDirectory(directoryPath);
         };
     }
