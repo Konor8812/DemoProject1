@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 
 
 @Slf4j
@@ -21,7 +20,7 @@ public class DemoService {
         return client.uploadFile(fileName, file);
     }
 
-    public ResponseEntity<File> downloadFile(String fileName) {
+    public ResponseEntity<Object> downloadFile(String fileName) {
         return client.downloadFile(fileName);
     }
 }

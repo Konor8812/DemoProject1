@@ -3,6 +3,7 @@ package com.illia.controller;
 
 import com.illia.server.controller.DemoServerController;
 import com.illia.server.request_processor.RequestProcessor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,32 +30,42 @@ public class DemoServerControllerTest {
     @MockBean
     RequestProcessor requestProcessor;
 
+    MockMultipartFile mockedMultipartFile;
+
     @Test
-    public void controllerTest() throws Exception {
-        var mockedMultipartFile = new MockMultipartFile("file",
-                "",
-                "text/plain",
-                "Content".getBytes());
-
-        when(requestProcessor.proceedSaveFile(any(), (MultipartFile) any()))
-                .thenReturn(ResponseEntity.ok().body("Saved file on server"));
-        when(requestProcessor.proceedDownloadFile(any()))
-                .thenReturn(ResponseEntity.ok().build());
-
-
+    public void uploadMultipartFileTest() throws Exception {
         mvc.perform(multipart("/demo/uploadMultipartFile?fileName=f1")
                         .file(mockedMultipartFile))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Saved file on server")));
         verify(requestProcessor, atLeast(1)).proceedSaveFile("f1", mockedMultipartFile);
 
+    }
+
+    @Test
+    public void downloadFileTestShouldBeOk() throws Exception {
         mvc.perform(get("/demo/downloadFile?fileName=f1"))
                 .andExpect(status().isOk());
         verify(requestProcessor, atLeast(1)).proceedDownloadFile("f1");
 
+    }
+
+    @Test
+    public void savedFileAmountTest() throws Exception {
         mvc.perform(get("/demo/savedFilesAmount"))
                 .andExpect(status().isOk());
         verify(requestProcessor, atLeast(1)).getFilesAmount();
     }
 
+    @BeforeEach
+    public void prepareMocks(){
+        mockedMultipartFile = new MockMultipartFile("file",
+                "",
+                "text/plain",
+                "Content".getBytes());
+        when(requestProcessor.proceedSaveFile(any(), (MultipartFile) any()))
+                .thenReturn(ResponseEntity.ok().body("Saved file on server"));
+        when(requestProcessor.proceedDownloadFile("f1"))
+                .thenReturn(ResponseEntity.ok().build());
+    }
 }

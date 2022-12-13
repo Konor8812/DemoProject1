@@ -1,5 +1,6 @@
 package com.illia.server.request_processor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.illia.server.file_holder.FileHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +16,17 @@ public class RequestProcessorImpl implements RequestProcessor {
     @Autowired
     FileHolder fileHolder;
 
+    @Autowired
+    ObjectMapper mapper;
+
     @Override
-    public ResponseEntity<File> proceedDownloadFile(String fileName) {
+    public ResponseEntity<Object> proceedDownloadFile(String fileName) {
         try {
             var fileHolderResponse = fileHolder.getFile(fileName);
             if (fileHolderResponse != null) {
                 return ResponseEntity.ok().body(fileHolderResponse);
             } else {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(mapper.writeValueAsString("No such file!"));
             }
         }catch (Exception ex){
             return ResponseEntity.internalServerError().build();

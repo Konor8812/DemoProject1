@@ -26,29 +26,36 @@ public class RequestProcessorTest {
     RequestProcessor requestProcessor;
 
     @Test
-    public void proceedDownloadFileRequestTest(){
+    public void proceedDownloadFileRequestTestShouldReturnBadRequest(){
         var mockedFile = mock(File.class);
-        when(fileholder.getFile("expectNotNull")).thenReturn(mockedFile);
+        when(fileholder.getFile("anyExistingFile")).thenReturn(mockedFile);
 
-        var response = requestProcessor.proceedDownloadFile("expectNotNull");
-
-        assertNotNull(response.getBody());
-        response = requestProcessor.proceedDownloadFile("nullExpected");
+        var response = requestProcessor.proceedDownloadFile("notExistingFile");
+        verify(fileholder, atLeast(1)).getFile(any());
         assertTrue(response.getStatusCode().is4xxClientError());
-
-        verify(fileholder, atLeast(2)).getFile(any());
     }
 
     @Test
-    public void proceedUploadFileRequest(){
-
-        var mockedMultipartFile = mock(MockMultipartFile.class);
+    public void proceedDownloadFileTestShouldReturnNotNull(){
         var mockedFile = mock(File.class);
+        when(fileholder.getFile("anyExistingFile")).thenReturn(mockedFile);
 
-        requestProcessor.proceedSaveFile("multipartFile", mockedMultipartFile);
-        requestProcessor.proceedSaveFile("file", mockedFile);
-        verify(fileholder, atLeast(1)).saveFile(any(), (MultipartFile) any());
-        verify(fileholder, atLeast(1)).saveFile(any(), (File) any());
+        var response = requestProcessor.proceedDownloadFile("anyExistingFile");
+        verify(fileholder, atLeast(1)).getFile(any());
+        assertNotNull(response.getBody());
     }
 
+    @Test
+    public void uploadMultipartFileRequest(){
+        var mockedMultipartFile = mock(MockMultipartFile.class);
+        requestProcessor.proceedSaveFile("multipartFile", mockedMultipartFile);
+        verify(fileholder, atLeast(1)).saveFile(any(), (MultipartFile) any());
+    }
+
+    @Test
+    public void uploadFileRequest() {
+        var mockedFile = mock(File.class);
+        requestProcessor.proceedSaveFile("file", mockedFile);
+        verify(fileholder, atLeast(1)).saveFile(any(), (File) any());
+    }
 }

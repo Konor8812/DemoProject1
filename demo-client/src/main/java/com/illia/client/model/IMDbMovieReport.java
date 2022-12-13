@@ -19,10 +19,10 @@ public class IMDbMovieReport {
     private IMDbMovieReport() {
     }
 
+    private static Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+);([^;]+);([^;]+);(\\d+);(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
+    private static Pattern grossRowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
     private int entitiesAmount = 0;
     private File savedFile = null;
-    private Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+);([^;]+);([^;]+);(\\d+);(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
-    private Pattern grossRowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
     private List<IMDbMovieEntity> reports;
     private static List<IMDbMovieEntity> savedReports;
 
@@ -39,6 +39,8 @@ public class IMDbMovieReport {
             }
         }
         savedReports = result.reports;
+        result.savedFile = file;
+        result.entitiesAmount = savedReports.size();
         return result;
     }
 
@@ -107,4 +109,5 @@ public class IMDbMovieReport {
         private String grossRevenue;
         private String budget;
     }
+
 }
