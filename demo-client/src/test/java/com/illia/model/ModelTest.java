@@ -1,13 +1,10 @@
-package demoproject1;
+package com.illia.model;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoProjectClientTest {
+public class ModelTest {
 
-    @Test
-    void contextLoads() {
-    }
 
 }

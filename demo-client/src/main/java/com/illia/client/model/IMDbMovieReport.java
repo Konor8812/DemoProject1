@@ -39,6 +39,7 @@ public class IMDbMovieReport {
             }
         }
         savedReports = result.reports;
+        result.savedFile = file;
         return result;
     }
 
@@ -107,4 +108,5 @@ public class IMDbMovieReport {
         private String grossRevenue;
         private String budget;
     }
+
 }

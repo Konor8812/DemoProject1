@@ -8,5 +8,6 @@ import java.io.File;
 
 public interface MyHttpClient {
     ResponseEntity<String> uploadFile(String fileName, MultipartFile file);
-    ResponseEntity<File> downloadFile(String fileName);
+    ResponseEntity<Object> downloadFile(String fileName);
+    void setPrefix(String prefix);
 }

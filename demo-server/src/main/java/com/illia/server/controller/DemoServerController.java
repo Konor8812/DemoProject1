@@ -40,7 +40,7 @@ public class DemoServerController {
     }
 
     @GetMapping("/downloadFile")
-    public ResponseEntity<File> downloadFile(@RequestParam(name = "fileName") String fileName) {
+    public ResponseEntity<Object> downloadFile(@RequestParam(name = "fileName") String fileName) {
         log.info("Download file server request: {}", fileName);
         return requestProcessor.proceedDownloadFile(fileName);
     }

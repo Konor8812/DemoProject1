@@ -26,7 +26,7 @@ public class DemoClientController {
     }
 
     @GetMapping("/downloadFile")
-    public ResponseEntity<File> downloadFile(@RequestParam(name = "fileName") String fileName) {
+    public ResponseEntity<Object> downloadFile(@RequestParam(name = "fileName") String fileName) {
         log.info("download file client request: {}", fileName);
         return demoService.downloadFile(fileName);
     }
