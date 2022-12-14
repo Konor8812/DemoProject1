@@ -109,5 +109,4 @@ public class IMDbMovieReport {
         private String grossRevenue;
         private String budget;
     }
-
 }
