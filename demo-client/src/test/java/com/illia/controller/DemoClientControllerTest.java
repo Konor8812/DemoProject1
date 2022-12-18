@@ -54,7 +54,7 @@ class DemoClientControllerTest {
 
     @Test
     public void downloadFileTestShouldBeOk() throws Exception {
-        var x = mvc.perform(get("/demo/downloadFile?fileName=fileName"))
+        mvc.perform(get("/demo/downloadFile?fileName=fileName"))
                 .andExpect(status().isOk());
         verify(service, atLeast(1)).downloadFile("fileName");
 

@@ -16,17 +16,6 @@ public class DemoProjectClientApplication {
         new SpringApplicationBuilder().sources(DemoProjectClientApplication.class).run(args);
     }
 
-    /**
-     * Deletes everything from demo-server/savedFiles/
-     */
 
-    @Bean
-    CommandLineRunner runner(){
-        return args ->{
-            var directoryPath = Path.of("demo-client/savedFiles/");
-            FileUtils.deleteDirectory(directoryPath.toFile());
-            Files.createDirectory(directoryPath);
-        };
-    }
 
 }

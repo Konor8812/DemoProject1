@@ -2,7 +2,6 @@ package com.illia.model;
 
 import com.illia.client.model.IMDbMovieReport;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -15,7 +14,7 @@ public class ModelTest {
 
     @Test
     public void parsedFileEntitiesAmountTest() throws URISyntaxException, IOException {
-        var uri = ClassLoader.getSystemResource("shortProvided.csv").toURI();
+        var uri = ClassLoader.getSystemResource("provided.csv").toURI();
         var filePath = Path.of(uri);
 
         var linesAmount = Files.readAllLines(filePath).size();

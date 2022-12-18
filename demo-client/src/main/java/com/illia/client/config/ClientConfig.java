@@ -4,8 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@ConfigurationProperties(prefix = "server")
+@ConfigurationProperties(prefix = "client")
 public class ClientConfig {
-    String port;
-    String baseUrl;
+    private String baseUrl;
+    private String downloadedFilesDirectoryPrefix;
 }
