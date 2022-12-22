@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -38,18 +40,20 @@ public class HttpClientTest {
 
     @Test
     public void downloadFileShouldBeOk() {
-        when(restTemplate.getForEntity("url/existingFile", Object.class)).thenReturn(ResponseEntity.ok().body("filePath"));
+        when(restTemplate.getForEntity("url/existingFile", byte[].class))
+                .thenReturn(ResponseEntity.ok().body("filePath".getBytes(Charset.defaultCharset())));
         var response = client.performDownloadFileRequest("url/existingFile");
         assertTrue(response.getStatusCode().is2xxSuccessful());
 
         var expectedMessage = "filePath";
-        var actualMessage = (String) response.getBody();
+        var actualMessage = new String(response.getBody());
         assertEquals(expectedMessage, actualMessage);
     }
 
     @Test
     public void downloadFileShouldBeBadRequest(){
-        when(restTemplate.getForEntity("url/nonExistingFile", Object.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "No such file!"));
+        when(restTemplate.getForEntity("url/nonExistingFile", byte[].class))
+                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "No such file!"));
 
         var exception = assertThrowsExactly(HttpClientErrorException.class,
                 () -> client.performDownloadFileRequest("url/nonExistingFile"));

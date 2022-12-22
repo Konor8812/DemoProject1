@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.IOException;
 
 @Slf4j
 @RestController
@@ -25,9 +25,9 @@ public class DemoClientController {
         return demoService.uploadFile(fileName, file);
     }
 
+
     @GetMapping("/downloadFile")
-    public ResponseEntity<Object> downloadFile(@RequestParam(name = "fileName") String fileName) {
-        log.info("download file client request: {}", fileName);
+    public ResponseEntity<String> downloadBytesArray(@RequestParam(name = "fileName") String fileName) throws IOException {
         return demoService.downloadFile(fileName);
     }
 }

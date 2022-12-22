@@ -1,6 +1,8 @@
 package com.illia.server.file_holder;
 
+import com.illia.server.config.ServerConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,13 +16,16 @@ import java.util.Map;
 @Component
 public class FileHolderImpl implements FileHolder {
 
-    private final Map<String, File> savedFiles = new HashMap<>();
-    private String prefix = "demo-server/savedFiles/";
+    @Autowired
+    ServerConfig serverConfig;
+
+
+    private final Map<String, Path> savedFiles = new HashMap<>();
 
     @Override
-    public File getFile(String fileName) {
+    public byte[] getFile(String fileName) throws IOException {
         try {
-            return savedFiles.get(fileName);
+            return Files.readAllBytes(savedFiles.get(fileName));
         } catch (Exception ex) {
             log.error("Server error during 'get file' operation!");
             throw ex;
@@ -28,55 +33,35 @@ public class FileHolderImpl implements FileHolder {
     }
 
     @Override
-    public String saveFile(String fileName, MultipartFile mpFile) {
-        if (mpFile != null) {
-            try {
-                var path = Path.of(prefix + fileName);
-                var updatedExisting = Files.deleteIfExists(path);
-                Files.createFile(path);
-                mpFile.transferTo(path);
-                savedFiles.put(fileName, path.toFile());
-
-                if (updatedExisting) {
-                    return "Updated existing file " + fileName;
-                } else {
-                    return "Saved file " + fileName;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                var internalErrorMsg = "Server error during 'save file' operation!";
-                log.error(internalErrorMsg);
-                return internalErrorMsg;
-            }
-        } else {
-            return "File is null, nothing to save!";
-        }
-    }
-
-    @Override
     public String saveFile(String fileName, File file) {
-        if (file != null) {
             try {
-                var path = Path.of(prefix + fileName);
-                var updatedExisting = Files.deleteIfExists(path);
-                Files.move(file.toPath(), path);
-                savedFiles.put(fileName, path.toFile());
+                var content = Files.readAllBytes(file.toPath());
 
-                if (updatedExisting) {
-                    return "Updated existing file " + fileName;
-                } else {
-                    return "Saved file on server " + fileName;
+                if (content.length > 0) {
+                    var path = Path.of(serverConfig.getSavedFilesDirectory() + fileName);
+                    var updatedExisting = Files.deleteIfExists(path);
+
+                    try (var os = new FileOutputStream(path.toFile());
+                         var is = new ByteArrayInputStream(content)) {
+                        is.transferTo(os);
+                        os.flush();
+                    }
+                    savedFiles.put(fileName, path);
+                    if (updatedExisting) {
+                        return "Updated existing file on server " + fileName;
+                    } else {
+                        return "Saved file on server " + fileName;
+                    }
                 }
+                else {
+                        return "File is null, nothing to save!";
+                    }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 var internalErrorMsg = "Server error during 'save file' operation!";
-                log.error(internalErrorMsg);
+                log.error(internalErrorMsg, ex);
                 return internalErrorMsg;
             }
-        } else {
-            return "File is null, nothing to save!";
         }
-    }
 
     @Override
     public Integer getFilesAmount() {
@@ -88,8 +73,4 @@ public class FileHolderImpl implements FileHolder {
         }
     }
 
-    @Override
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
 }

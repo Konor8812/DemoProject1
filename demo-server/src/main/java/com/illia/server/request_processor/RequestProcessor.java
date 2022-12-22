@@ -9,10 +9,6 @@ import java.io.File;
 public interface RequestProcessor {
 
     ResponseEntity<Object> proceedDownloadFile(String fileName);
-
-    ResponseEntity<String> proceedSaveFile(String fileName, MultipartFile file);
     ResponseEntity<String> proceedSaveFile(String fileName, File file);
-
     ResponseEntity<Integer> getFilesAmount();
-
 }

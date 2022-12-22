@@ -9,11 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
 
 
 @Slf4j
@@ -26,38 +22,42 @@ public class DemoService {
     @Autowired
     MyHttpClient client;
 
-    public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile) {
-        var url = String.format(clientConfig.getBaseUrl(), SupportedClientOperation.UPLOAD_FILE, fileName);
+    @Autowired
+    FileHandlingService fileHandlingService;
+    private static final String UPLOAD_FILE_BASE_URL = "/uploadFile?fileName=";
+    private static final String DOWNLOAD_FILE_BASE_URL = "/downloadFile?fileName=";
 
-        File file = null;
-        if (multipartFile != null) {
-            file = new File(fileName);
-            try (var is = multipartFile.getInputStream();
-                 var os = new FileOutputStream(file)) {
-                is.transferTo(os);
-            } catch (IOException e) {
-                var errorMsg = "Error during multipart file resolving!";
-                log.error(errorMsg, e);
-                return ResponseEntity.internalServerError().body(errorMsg);
+    public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile) {
+        var url = String.format(clientConfig.getBaseUrl(), UPLOAD_FILE_BASE_URL, fileName);
+
+        try {
+            File file = fileHandlingService.resolveMultipartFile(fileName, multipartFile);
+            if(file == null){
+                return ResponseEntity.badRequest().body("No file attached!");
             }
-        }else {
-            return ResponseEntity.badRequest().body("No file attached!");
+            return client.performUploadFileRequest(url, file);
+        } catch (IOException e){
+            var errorMsg = "Error during multipart file resolving!";
+            log.error(errorMsg, e);
+            return ResponseEntity.internalServerError().body(errorMsg);
         }
-        return client.performUploadFileRequest(url, file);
+
     }
 
-    public ResponseEntity<Object> downloadFile(String fileName) {
-        var url = String.format(clientConfig.getBaseUrl(), SupportedClientOperation.DOWNLOAD_FILE, fileName);
+    public ResponseEntity<String> downloadFile(String fileName) throws IOException {
+        var url = String.format(clientConfig.getBaseUrl(), DOWNLOAD_FILE_BASE_URL, fileName);
         try {
-            var response = client.performDownloadFileRequest(url);
-            System.out.println(response);
-            var body = (String) response.getBody();
-            var savedFileName = saveFile(Path.of(body));
-            if (savedFileName != null) {
-                return ResponseEntity.ok().body("Successfully downloaded, file location - " + savedFileName);
+            var resp = client.performDownloadFileRequest(url);
+            var content = resp.getBody();
+
+            var createdNewFile = fileHandlingService.saveFile(fileName, content);
+
+            if (createdNewFile) {
+                return ResponseEntity.ok().body("Created new file - " + fileName);
             } else {
-                return ResponseEntity.badRequest().body("Unable to save file! Reason: file exists no more ");
+                return ResponseEntity.ok().body("Updated existing file - " + fileName);
             }
+
         } catch (HttpClientErrorException ex) {
             var statusCode = ex.getStatusCode();
             var serverResponse = ex.getResponseBodyAsString();
@@ -66,30 +66,9 @@ public class DemoService {
             } else {
                 return ResponseEntity.internalServerError().body(serverResponse);
             }
-        }
-    }
-
-    private static class SupportedClientOperation {
-        private static final String UPLOAD_FILE = "/uploadFile?fileName=";
-        private static final String DOWNLOAD_FILE = "/downloadFile?fileName=";
-    }
-
-    private Path saveFile(Path path) {
-        var prefix = clientConfig.getDownloadedFilesDirectoryPrefix();
-        var fileName = path.getFileName().toString();
-        var currentFilePath = Path.of(prefix, fileName);
-        for (int i = 1; ; i++) {
-            if (!currentFilePath.toFile().exists()) {
-                try {
-                    return Files.copy(path, currentFilePath);
-                } catch (IOException ex) {
-                    log.error("Error trying to save file!", ex);
-                    return null;
-                }
-            } else {
-                var nextPath = String.format("%s\\%s(%d)", prefix, fileName, i);
-                currentFilePath = Path.of(nextPath);
-            }
+        } catch (IOException e) {
+            log.error("Error in save file", e);
+            return ResponseEntity.internalServerError().body("Inner error while trying to save file");
         }
 
     }
