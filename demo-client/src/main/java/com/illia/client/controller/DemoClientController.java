@@ -1,6 +1,8 @@
 package com.illia.client.controller;
 
-import com.illia.client.service.DemoService;
+import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.service.FileTransferService;
+import com.illia.client.service.QueryProcessingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -16,18 +18,25 @@ import java.io.IOException;
 public class DemoClientController {
 
     @Autowired
-    private DemoService demoService;
+    private FileTransferService fileTransferService;
+
 
     @PostMapping(value = "/uploadFile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> uploadFile(@RequestParam(name = "fileName") String fileName,
-                                             @RequestPart MultipartFile file) {
-        log.info("Upload file client request: {}", fileName);
-        return demoService.uploadFile(fileName, file);
+                                             @RequestHeader(name = "Overwrite", required = false, defaultValue = "false") Boolean overwrite,
+                                             @RequestPart MultipartFile multipartFile) {
+        return fileTransferService.uploadFile(fileName, multipartFile, overwrite);
     }
 
 
     @GetMapping("/downloadFile")
-    public ResponseEntity<String> downloadBytesArray(@RequestParam(name = "fileName") String fileName) throws IOException {
-        return demoService.downloadFile(fileName);
+    public ResponseEntity<String> downloadFile(@RequestParam(name = "fileName") String fileName,
+                                               @RequestParam(name = "overwrite", required = false, defaultValue = "false") Boolean overwrite) {
+        return fileTransferService.downloadFile(fileName, overwrite);
+    }
+
+    @GetMapping("/deleteFile")
+    public ResponseEntity<String> deleteFile(@RequestParam(name = "fileName") String fileName) {
+        return fileTransferService.deleteFile(fileName);
     }
 }

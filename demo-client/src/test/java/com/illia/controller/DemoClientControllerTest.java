@@ -1,8 +1,9 @@
 package com.illia.controller;
 
 import com.illia.client.controller.DemoClientController;
-import com.illia.client.service.DemoService;
+import com.illia.client.service.FileTransferService;
 
+import com.illia.client.service.QueryProcessingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,35 +31,34 @@ class DemoClientControllerTest {
     MockMvc mvc;
 
     @MockBean
-    DemoService service;
+    FileTransferService fileTransferService;
 
-    MockMultipartFile mockedMultipartFile;
+
+    @MockBean
+    QueryProcessingService queryProcessingService;
 
     @Test
     public void uploadFileShouldBeOk() throws Exception {
-        when(service.uploadFile(any(), any()))
+        when(fileTransferService.uploadFile(any(), any(), anyBoolean()))
                 .thenReturn(ResponseEntity.ok().body("Upload request sent"));
 
-        mockedMultipartFile = new MockMultipartFile("file",
-                "",
-                "text/plain",
-                "Content".getBytes());
+        var mockMultipartFile = new MockMultipartFile("multipartFile", "Content".getBytes());
 
         mvc.perform(multipart("/demo/uploadFile?fileName=fileName")
-                        .file(mockedMultipartFile))
+                        .file(mockMultipartFile))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Upload request sent")));
-        verify(service, atLeast(1)).uploadFile("fileName", mockedMultipartFile);
+        verify(fileTransferService, times(1)).uploadFile("fileName", mockMultipartFile, false);
     }
 
     @Test
     public void downloadFileTestShouldBeOk() throws Exception {
-        when(service.downloadFile("file"))
+        when(fileTransferService.downloadFile("fileName", false))
                 .thenReturn(ResponseEntity.ok().build());
 
         mvc.perform(get("/demo/downloadFile?fileName=fileName"))
                 .andExpect(status().isOk());
-        verify(service, atLeast(1)).downloadFile("fileName");
+        verify(fileTransferService, times(1)).downloadFile("fileName", false);
 
     }
 

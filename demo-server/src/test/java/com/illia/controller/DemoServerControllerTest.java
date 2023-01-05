@@ -29,13 +29,13 @@ public class DemoServerControllerTest {
 
     @Test
     public void uploadFileTest() throws Exception {
-        when(requestProcessor.proceedSaveFile(any(), any()))
+        when(requestProcessor.proceedSaveFile(any(), any(), anyBoolean()))
                 .thenReturn(ResponseEntity.ok().body("Saved file on server"));
 
         mvc.perform(multipart("/demo/uploadFile?fileName=f1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Saved file on server")));
-        verify(requestProcessor, atLeast(1)).proceedSaveFile(any(), any());
+        verify(requestProcessor, times(1)).proceedSaveFile(any(), any(), anyBoolean());
     }
 
     @Test
@@ -44,14 +44,14 @@ public class DemoServerControllerTest {
                 .thenReturn(ResponseEntity.ok().build());
         mvc.perform(get("/demo/downloadFile?fileName=existingFile"))
                 .andExpect(status().isOk());
-        verify(requestProcessor, atLeast(1)).proceedDownloadFile("existingFile");
+        verify(requestProcessor, times(1)).proceedDownloadFile("existingFile");
     }
 
     @Test
     public void savedFileAmountTest() throws Exception {
         mvc.perform(get("/demo/savedFilesAmount"))
                 .andExpect(status().isOk());
-        verify(requestProcessor, atLeast(1)).getFilesAmount();
+        verify(requestProcessor, times(1)).getFilesAmount();
     }
 
 }

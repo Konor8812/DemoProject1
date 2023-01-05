@@ -1,11 +1,13 @@
 package com.illia.server.file_holder;
 
-import java.io.File;
+import org.springframework.core.io.ByteArrayResource;
+
 import java.io.IOException;
 
 public interface FileHolder {
 
     byte[] getFile(String fileName) throws IOException;
-    String saveFile(String fileName, File file);
+    boolean saveFile(String fileName, ByteArrayResource byteArrayResource) throws IOException;
     Integer getFilesAmount();
+    boolean exists(String fileName);
 }

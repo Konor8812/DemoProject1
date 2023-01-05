@@ -2,7 +2,9 @@ package com.illia.server.request_processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.illia.server.file_holder.FileHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,12 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Files;
 
-
+@Slf4j
 @Service
 public class RequestProcessorImpl implements RequestProcessor {
 
     @Autowired
-    FileHolder fileHolder;
+    private FileHolder fileHolder;
 
     @Override
     public ResponseEntity<Object> proceedDownloadFile(String fileName) {
@@ -27,24 +29,29 @@ public class RequestProcessorImpl implements RequestProcessor {
                 return ResponseEntity.badRequest().body("No such file!".getBytes());
             }
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().build();
+            var errorMsg = "FileHolder does not respond!";
+            log.error(errorMsg, ex);
+            return ResponseEntity.internalServerError().body(errorMsg);
         }
     }
 
-    // I don't like this realization
     @Override
-    public ResponseEntity<String> proceedSaveFile(String fileName, File file) {
-        var fileHolderResponse = fileHolder.saveFile(fileName, file);
-
-        if (fileHolderResponse.equals("Updated existing file on server " + fileName)
-                || fileHolderResponse.equals("Saved file on server " + fileName)) {
-            return ResponseEntity.ok().body(fileHolderResponse);
+    public ResponseEntity<String> proceedSaveFile(String fileName, ByteArrayResource byteArrayResource, boolean overwrite) {
+        if(!overwrite){
+            if(fileHolder.exists(fileName)){
+                return ResponseEntity.badRequest().body("File with such name already stored on server. " +
+                        "Consider adding overwrite=true request header to overwrite existing file or change file name");
+            }
         }
 
-        if (fileHolderResponse.equals("File is null, nothing to save!")) {
-            return ResponseEntity.badRequest().body(fileHolderResponse);
-        } else {
-            return ResponseEntity.internalServerError().body(fileHolderResponse);
+        try{
+            var saved = fileHolder.saveFile(fileName, byteArrayResource);
+            if(saved){
+                return ResponseEntity.ok().body(String.format("File %s saved successfully on server", fileName));
+            }
+            return ResponseEntity.badRequest().body("File is either empty or absent, nothing to store");
+        }catch (Exception ex){
+            return ResponseEntity.internalServerError().body(ex.getMessage());
         }
     }
 

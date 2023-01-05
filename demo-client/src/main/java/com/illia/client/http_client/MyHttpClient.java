@@ -1,11 +1,10 @@
 package com.illia.client.http_client;
 
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 
-import java.io.File;
-
 public interface MyHttpClient {
-    ResponseEntity<String> performUploadFileRequest(String url, File file);
-    ResponseEntity<byte[]> performDownloadFileRequest(String url);
+    ResponseEntity<String> performUploadFileRequest(String fileName, ByteArrayResource resource, boolean overwrite);
+    ResponseEntity<byte[]> performDownloadFileRequest(String fileName);
 }

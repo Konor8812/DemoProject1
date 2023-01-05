@@ -3,8 +3,8 @@ package com.illia.server.file_holder;
 import com.illia.server.config.ServerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -17,7 +17,7 @@ import java.util.Map;
 public class FileHolderImpl implements FileHolder {
 
     @Autowired
-    ServerConfig serverConfig;
+    private ServerConfig serverConfig;
 
 
     private final Map<String, Path> savedFiles = new HashMap<>();
@@ -25,7 +25,12 @@ public class FileHolderImpl implements FileHolder {
     @Override
     public byte[] getFile(String fileName) throws IOException {
         try {
-            return Files.readAllBytes(savedFiles.get(fileName));
+            var filePath = savedFiles.get(fileName);
+            if (filePath != null) {
+                return Files.readAllBytes(filePath);
+            } else {
+                return null;
+            }
         } catch (Exception ex) {
             log.error("Server error during 'get file' operation!");
             throw ex;
@@ -33,35 +38,32 @@ public class FileHolderImpl implements FileHolder {
     }
 
     @Override
-    public String saveFile(String fileName, File file) {
+    public boolean saveFile(String fileName, ByteArrayResource byteArrayResource) throws IOException {
+        if (isValid(byteArrayResource)) {
             try {
-                var content = Files.readAllBytes(file.toPath());
+                var path = Path.of(serverConfig.getSavedFilesDirectory() + fileName);
+                Files.deleteIfExists(path);
 
-                if (content.length > 0) {
-                    var path = Path.of(serverConfig.getSavedFilesDirectory() + fileName);
-                    var updatedExisting = Files.deleteIfExists(path);
-
-                    try (var os = new FileOutputStream(path.toFile());
-                         var is = new ByteArrayInputStream(content)) {
-                        is.transferTo(os);
-                        os.flush();
-                    }
-                    savedFiles.put(fileName, path);
-                    if (updatedExisting) {
-                        return "Updated existing file on server " + fileName;
-                    } else {
-                        return "Saved file on server " + fileName;
-                    }
+                try (var os = new FileOutputStream(path.toFile());
+                     var is = byteArrayResource.getInputStream()) {
+                    is.transferTo(os);
+                    os.flush();
                 }
-                else {
-                        return "File is null, nothing to save!";
-                    }
+                savedFiles.put(fileName, path);
+                return true;
+
             } catch (Exception ex) {
-                var internalErrorMsg = "Server error during 'save file' operation!";
-                log.error(internalErrorMsg, ex);
-                return internalErrorMsg;
+                log.error("Server error during 'save file' operation!", ex);
+                throw ex;
             }
         }
+        return false;
+    }
+
+    private boolean isValid(ByteArrayResource byteArrayResource) {
+        return byteArrayResource != null && byteArrayResource.contentLength() > 0;
+    }
+
 
     @Override
     public Integer getFilesAmount() {
@@ -71,6 +73,11 @@ public class FileHolderImpl implements FileHolder {
             log.error("Server error during 'get saved files amount' operation!");
             return -1;
         }
+    }
+
+    @Override
+    public boolean exists(String fileName) {
+        return savedFiles.get(fileName) != null;
     }
 
 }

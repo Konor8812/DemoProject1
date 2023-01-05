@@ -14,7 +14,7 @@ import java.nio.file.Path;
 public class ApplicationConfig {
 
     /**
-     * Deletes everything from demo-server/savedFiles/
+     * Deletes everything from demo-client/downloadedFiles/
      */
 
     @Bean

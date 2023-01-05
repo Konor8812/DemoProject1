@@ -7,10 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ByteArrayResource;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
@@ -48,17 +46,35 @@ public class RequestProcessorTest {
     }
 
     @Test
-    public void proceedUploadFileRequestShouldBeOk() {
+    public void proceedUploadFileRequestShouldBeOk() throws IOException {
         var fileName = "mockFile";
-        var mockedFile = mock(File.class);
-        when(fileholder.saveFile(fileName, mockedFile))
-                .thenReturn("Saved file on server mockFile");
+        var validFile = new ByteArrayResource("Content".getBytes());
+        when(fileholder.exists(anyString()))
+                .thenReturn(false);
+        when(fileholder.saveFile(fileName, validFile))
+                .thenReturn(true);
 
-        var response = requestProcessor.proceedSaveFile(fileName, mockedFile);
+        var response = requestProcessor.proceedSaveFile(fileName, validFile, true);
         var body = response.getBody();
-        assertEquals("Saved file on server mockFile", body);
+        assertEquals(String.format("File %s saved successfully on server", fileName), body);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         verify(fileholder, atLeast(1)).saveFile(any(), any());
+    }
+
+    @Test
+    public void proceedUploadFileRequestShouldBeBadRequest() throws IOException {
+        var fileName = "mockFile";
+        var invalidFile = new ByteArrayResource(new byte[]{});
+        when(fileholder.exists(fileName))
+                .thenReturn(false);
+        when(fileholder.saveFile(fileName, invalidFile))
+                .thenReturn(false);
+
+        var response = requestProcessor.proceedSaveFile(fileName, invalidFile, true);
+        var body = response.getBody();
+        assertEquals("File is either empty or absent, nothing to store", body);
+        assertTrue(response.getStatusCode().is4xxClientError());
+        verify(fileholder, times(1)).saveFile(any(), any());
     }
 
     @Test

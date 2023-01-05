@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.context.TestPropertySource;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -34,50 +36,53 @@ public class FileHolderTest {
     String savedFilesDirectory;
 
     @Test
-    public void testSaveFile() throws URISyntaxException {
+    public void testSaveFile() throws IOException {
         String fileName = "provided.csv";
 
-        var uri = ClassLoader.getSystemResource(fileName).toURI();
-        var filePath = Path.of(uri);
-        var file = filePath.toFile();
+        var file = new ByteArrayResource(fileName.getBytes());
 
         var response = fileHolder.saveFile(fileName, file);
-        assertEquals("Saved file on server provided.csv", response);
-
-        response = fileHolder.saveFile(fileName, file);
-        assertEquals("Updated existing file on server provided.csv", response);
+        assertTrue(response);
     }
 
     @Test
-    public void testGetFile() throws URISyntaxException, IOException {
-        String fileName = "provided.csv";
+    public void testSaveInvalidFile() throws IOException {
+        var file = new ByteArrayResource(new byte[] {});
+        var response = fileHolder.saveFile("fileName", file);
+        assertFalse(response);
+    }
 
-        var uri = ClassLoader.getSystemResource(fileName).toURI();
-        var filePath = Path.of(uri);
-        var expected = Files.readAllBytes(filePath);
 
-        fileHolder.saveFile(fileName, filePath.toFile());
+    @Test
+    public void testGetFileShouldBeOk() throws IOException {
+        String fileName = "existingFile";
+        var directoryPath = Path.of(savedFilesDirectory);
+        try {
+            when(serverConfig.getSavedFilesDirectory())
+                    .thenReturn(savedFilesDirectory);
+            Files.createDirectory(directoryPath);
+
+            var expected = "Content".getBytes();
+            var file = new ByteArrayResource(expected);
+
+            fileHolder.saveFile(fileName, file);
+            var actual = fileHolder.getFile(fileName);
+
+            assertArrayEquals(expected, actual);
+            assertTrue(Files.exists(directoryPath.resolve(fileName)));
+        }finally {
+            FileUtils.deleteDirectory(directoryPath.toFile());
+        }
+    }
+
+    @Test
+    public void testGetFileShouldBeNull() throws IOException {
+        String fileName = "nonExistingFile";
         var actual = fileHolder.getFile(fileName);
 
-        assertArrayEquals(expected, actual);
+        assertNull(actual);
     }
 
-
-    @BeforeEach
-    public void clearAndCreateDirectory() throws IOException {
-        when(serverConfig.getSavedFilesDirectory())
-                .thenReturn(savedFilesDirectory);
-
-        var directoryPath = Path.of(savedFilesDirectory);
-        FileUtils.deleteDirectory(directoryPath.toFile());
-        Files.createDirectory(directoryPath);
-    }
-
-    @AfterEach
-    public void clearDirectory() throws IOException {
-        var directoryPath = Path.of(savedFilesDirectory);
-        FileUtils.deleteDirectory(directoryPath.toFile());
-    }
 
 
 }
