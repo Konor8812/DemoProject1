@@ -29,7 +29,7 @@ public class RequestProcessorImpl implements RequestProcessor {
                 return ResponseEntity.badRequest().body("No such file!".getBytes());
             }
         } catch (Exception ex) {
-            var errorMsg = "FileHolder does not respond!";
+            var errorMsg = "Internal server error!";
             log.error(errorMsg, ex);
             return ResponseEntity.internalServerError().body(errorMsg);
         }
@@ -37,11 +37,9 @@ public class RequestProcessorImpl implements RequestProcessor {
 
     @Override
     public ResponseEntity<String> proceedSaveFile(String fileName, ByteArrayResource byteArrayResource, boolean overwrite) {
-        if(!overwrite){
-            if(fileHolder.exists(fileName)){
-                return ResponseEntity.badRequest().body("File with such name already stored on server. " +
-                        "Consider adding overwrite=true request header to overwrite existing file or change file name");
-            }
+        if(!overwrite && fileHolder.exists(fileName)){
+            return ResponseEntity.badRequest().body("File with such name already stored on server. " +
+                    "Consider adding overwrite=true request header to overwrite existing file or change file name");
         }
 
         try{

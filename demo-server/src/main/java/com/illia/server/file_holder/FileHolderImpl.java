@@ -77,7 +77,7 @@ public class FileHolderImpl implements FileHolder {
 
     @Override
     public boolean exists(String fileName) {
-        return savedFiles.get(fileName) != null;
+        return savedFiles.containsKey(fileName);
     }
 
 }
