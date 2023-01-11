@@ -6,16 +6,22 @@ import com.illia.client.http_client.MyHttpClient;
 import com.illia.client.http_client.MyHttpClientImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,24 +39,35 @@ public class HttpClientTest {
     @Autowired
     MyHttpClient client;
 
+    @Captor
+    ArgumentCaptor<HttpEntity<MultiValueMap<String, Object>>> httpEntityArgumentCaptor;
 
     @Test
-    public void uploadFileShouldBeOk(){
-        client.performUploadFileRequest("fileName", mock(ByteArrayResource.class), true);
-        verify(restTemplate, times(1)).postForEntity((String) any(), any(), any());
+    public void uploadFileShouldInvokePostForEntity(){
+        var fileName = "fileName";
+        var expectedUrl = String.format(clientConfig.getBaseUrl(), "/uploadFile?fileName=", fileName);
+        var overwriteFlag = true;
+        var mockedResource = mock(ByteArrayResource.class);
+        client.performUploadFileRequest("fileName", mockedResource, overwriteFlag);
+        verify(restTemplate, times(1))
+                .postForEntity(eq(expectedUrl), httpEntityArgumentCaptor.capture(), eq(String.class));
+
+        var capturedEntity = httpEntityArgumentCaptor.getValue();
+        var capturedResource = Objects.requireNonNull(capturedEntity.getBody()).getFirst("resource");
+        assertEquals(mockedResource, capturedResource);
+
+        var capturedHeaders = capturedEntity.getHeaders();
+        var capturedOverwriteFlag = Boolean.parseBoolean(Objects.requireNonNull(capturedHeaders.get("overwrite")).get(0));
+        assertTrue(capturedOverwriteFlag);
     }
 
     @Test
-    public void downloadFileShouldBeOk() {
-        when(restTemplate.getForEntity("url/downloadFile?fileName=existingFile", byte[].class))
-                .thenReturn(ResponseEntity.ok().body("filePath".getBytes(Charset.defaultCharset())));
-
-        var response = client.performDownloadFileRequest("existingFile");
-
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-        var expectedMessage = "filePath";
-        var actualMessage = new String(response.getBody());
-        assertEquals(expectedMessage, actualMessage);
+    public void downloadFileShouldInvokeGetForEntity() {
+        var fileName = "fileName";
+        var expectedUrl = String.format(clientConfig.getBaseUrl(), "/downloadFile?fileName=", fileName);
+        client.performDownloadFileRequest(fileName);
+        verify(restTemplate, times(1))
+                .getForEntity(eq(expectedUrl), eq(byte[].class));
     }
 
     @Test

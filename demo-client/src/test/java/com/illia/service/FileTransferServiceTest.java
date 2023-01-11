@@ -1,10 +1,8 @@
 package com.illia.service;
 
-import com.illia.client.config.ClientConfig;
 import com.illia.client.http_client.MyHttpClient;
 import com.illia.client.service.FileTransferService;
-import com.illia.client.service.FileHandlingService;
-import org.junit.jupiter.api.BeforeEach;
+import com.illia.client.service.FileHandlingProxyService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.IOException;
@@ -34,33 +33,36 @@ public class FileTransferServiceTest {
     MyHttpClient client;
 
     @MockBean
-    FileHandlingService fileHandlingService;
-
+    FileHandlingProxyService fileHandlingProxyService;
 
     @Test
-    public void uploadFileShouldBeOk() throws IOException {
-        when(client.performUploadFileRequest(any(), any(), anyBoolean()))
-                .thenReturn(ResponseEntity.ok().build());
-        when(fileHandlingService.resolveMultipartFile(notNull()))
-                .thenReturn(mock(ByteArrayResource.class));
-
+    public void uploadFileShouldResolveResourceAndCallClient() throws IOException {
         var fileName = "fileName";
-        var mockMultipartFile = new MockMultipartFile("fileName", "Content".getBytes());
+        var mockMultipartFile = mock(MultipartFile.class);
+        var mockResource = mock(ByteArrayResource.class);
+
+        when(client.performUploadFileRequest(eq(fileName), eq(mockResource), anyBoolean()))
+                .thenReturn(ResponseEntity.ok().build());
+        when(fileHandlingProxyService.resolveMultipartFile(notNull()))
+                .thenReturn(mockResource);
 
         var response = service.uploadFile(fileName, mockMultipartFile, true);
-        verify(client, times(1)).performUploadFileRequest(any(), any(), anyBoolean());
-        verify(fileHandlingService, times(1)).resolveMultipartFile(mockMultipartFile);
+
+        verify(client, times(1))
+                .performUploadFileRequest(eq(fileName), eq(mockResource), eq(true));
+        verify(fileHandlingProxyService, times(1))
+                .resolveMultipartFile(eq(mockMultipartFile));
         assertTrue(response.getStatusCode().is2xxSuccessful());
     }
 
     @Test
-    public void uploadFileShouldNotOverwrite() throws IOException {
+    public void uploadFileShouldBeBadRequestWithOverwriteFalse() throws IOException {
         var fileName = "alreadyExistingFile";
 
-        var mockMultipartFile = new MockMultipartFile(fileName, "Content".getBytes());
-        var byteArrayResource = new ByteArrayResource("Content".getBytes());
+        var mockMultipartFile = mock(MultipartFile.class);
+        var byteArrayResource = mock(ByteArrayResource.class);
 
-        when(fileHandlingService.resolveMultipartFile(mockMultipartFile))
+        when(fileHandlingProxyService.resolveMultipartFile(notNull()))
                 .thenReturn(byteArrayResource);
 
         var mockException = mock(HttpClientErrorException.class);
@@ -73,48 +75,52 @@ public class FileTransferServiceTest {
                 .thenThrow(mockException);
 
         var response = service.uploadFile(fileName, mockMultipartFile, false);
+
         verify(client, times(1))
                 .performUploadFileRequest(fileName, byteArrayResource, false);
-        verify(fileHandlingService, times(1))
+        verify(fileHandlingProxyService, times(1))
                 .resolveMultipartFile(mockMultipartFile);
         assertTrue(response.getStatusCode().is4xxClientError());
+        assertEquals("File already exists, no overwrite instructions", response.getBody());
     }
     @Test
-    public void uploadFileShouldBeBadRequest() throws IOException {
+    public void uploadFileWithMultipartFileNullShouldBeBadRequest() throws IOException {
         var response = service.uploadFile("fileName", null, true);
         verify(client, never()).performUploadFileRequest(any(), any(), anyBoolean());
-        verify(fileHandlingService, never()).resolveMultipartFile(any());
+        verify(fileHandlingProxyService, never()).resolveMultipartFile(any());
         assertTrue(response.getStatusCode().is4xxClientError());
+        assertEquals("No file attached!", response.getBody());
     }
 
     @Test
-    public void downloadFileShouldBeOk() throws IOException {
+    public void downloadFileShouldCallClientAndFileHandlingProxyService() throws IOException {
         var fileName = "existingFile";
-        var contentAsBytes = "Content".getBytes(StandardCharsets.UTF_8);
+        var contentAsBytes = new byte[]{};
 
-        when(fileHandlingService.saveFile(fileName, contentAsBytes, true))
-                .thenReturn(true);
-        when(client.performDownloadFileRequest(any()))
+        when(client.performDownloadFileRequest(fileName))
                 .thenReturn(ResponseEntity.ok().body(contentAsBytes));
+        when(fileHandlingProxyService.saveFile(fileName, contentAsBytes, true))
+                .thenReturn(true);
 
         var response = service.downloadFile(fileName, true);
 
         assertEquals(String.format("File %s saved successfully", fileName), response.getBody());
 
         verify(client, times(1))
-                .performDownloadFileRequest(any());
-        verify(fileHandlingService, times(1))
+                .performDownloadFileRequest(fileName);
+        verify(fileHandlingProxyService, times(1))
                 .saveFile("existingFile", contentAsBytes, true);
     }
 
     @Test
-    public void downloadFileShouldBeBadRequest() {
+    public void downloadNonExistingFileShouldBeBadRequest() throws IOException {
         var fileName = "nonExistingFile";
         when(client.performDownloadFileRequest(fileName))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
         var response = service.downloadFile(fileName, true);
         verify(client, times(1)).performDownloadFileRequest(fileName);
+        verify(fileHandlingProxyService, never()).saveFile(eq(fileName), any(), eq(true));
         assertTrue(response.getStatusCode().is4xxClientError());
     }
 }

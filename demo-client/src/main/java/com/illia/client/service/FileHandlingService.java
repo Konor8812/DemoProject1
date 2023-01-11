@@ -34,4 +34,8 @@ public class FileHandlingService {
     public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile) throws IOException {
         return new ByteArrayResource(multipartFile.getBytes());
     }
+
+    public boolean exists(Path path) {
+        return Files.exists(path);
+    }
 }
