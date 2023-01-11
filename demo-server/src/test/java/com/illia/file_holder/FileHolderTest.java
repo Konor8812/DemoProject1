@@ -1,29 +1,23 @@
 package com.illia.file_holder;
 
 import com.illia.server.config.ServerConfig;
+import com.illia.server.file_holder.FileHandler;
 import com.illia.server.file_holder.FileHolder;
 import com.illia.server.file_holder.FileHolderImpl;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@TestPropertySource("classpath:application-test.properties")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(classes = {FileHolderImpl.class})
 public class FileHolderTest {
 
@@ -32,57 +26,74 @@ public class FileHolderTest {
     @MockBean
     ServerConfig serverConfig;
 
-    @Value("${savedFilesDirectory}")
-    String savedFilesDirectory;
+    @MockBean
+    FileHandler fileHandler;
 
     @Test
-    public void testSaveFile() throws IOException {
+    public void testSaveValidFile() throws IOException {
         String fileName = "provided.csv";
+        when(serverConfig.getSavedFilesDirectory())
+                .thenReturn("directoryPath");
+        var filePath = Path.of(serverConfig.getSavedFilesDirectory(), fileName);
+        var resource = mock(ByteArrayResource.class);
+        when(fileHandler.validateResource(resource))
+                .thenReturn(true);
+        when(fileHandler.saveFile(filePath, resource)).thenReturn(true);
 
-        var file = new ByteArrayResource(fileName.getBytes());
+        var response = fileHolder.saveFile(fileName, resource);
 
-        var response = fileHolder.saveFile(fileName, file);
+        verify(fileHandler, times(1)).validateResource(resource);
+        verify(fileHandler, times(1)).saveFile(filePath, resource);
         assertTrue(response);
+        assertEquals(1, fileHolder.getFilesAmount());
     }
 
     @Test
     public void testSaveInvalidFile() throws IOException {
-        var file = new ByteArrayResource(new byte[] {});
-        var response = fileHolder.saveFile("fileName", file);
+        var resource = mock(ByteArrayResource.class);
+        when(fileHandler.validateResource(resource))
+                .thenReturn(false);
+        var response = fileHolder.saveFile("fileName", resource);
+        verify(fileHandler, times(1)).validateResource(resource);
+        verify(fileHandler, never()).saveFile(any(), any());
         assertFalse(response);
+        assertEquals(0, fileHolder.getFilesAmount());
     }
 
 
     @Test
-    public void testGetFileShouldBeOk() throws IOException {
+    public void testGetFileShouldCallFileHandlerMethods() throws IOException {
         String fileName = "existingFile";
-        var directoryPath = Path.of(savedFilesDirectory);
-        try {
-            when(serverConfig.getSavedFilesDirectory())
-                    .thenReturn(savedFilesDirectory);
-            Files.createDirectory(directoryPath);
 
-            var expected = "Content".getBytes();
-            var file = new ByteArrayResource(expected);
+        when(serverConfig.getSavedFilesDirectory())
+                .thenReturn("directoryPath");
 
-            fileHolder.saveFile(fileName, file);
-            var actual = fileHolder.getFile(fileName);
+        var filePath = Path.of(serverConfig.getSavedFilesDirectory(), fileName);
+        var expected = "Content".getBytes();
 
-            assertArrayEquals(expected, actual);
-            assertTrue(Files.exists(directoryPath.resolve(fileName)));
-        }finally {
-            FileUtils.deleteDirectory(directoryPath.toFile());
-        }
-    }
+        var resource = mock(ByteArrayResource.class);
+        when(fileHandler.validateResource(resource))
+                .thenReturn(true);
+        when(fileHandler.saveFile(filePath, resource))
+                .thenReturn(true);
+        when(fileHandler.getFileContent(filePath))
+                .thenReturn(expected);
 
-    @Test
-    public void testGetFileShouldBeNull() throws IOException {
-        String fileName = "nonExistingFile";
+        fileHolder.saveFile(fileName, resource);
+        assertEquals(1, fileHolder.getFilesAmount());
+
         var actual = fileHolder.getFile(fileName);
 
-        assertNull(actual);
+        verify(fileHandler, times(1)).getFileContent(filePath);
+        assertArrayEquals(expected, actual);
     }
 
-
+    @Test
+    public void testGetFileShouldNotCallFileHandlerMethod() throws IOException {
+        String fileName = "nonExistingFile";
+        var resp = fileHolder.getFile(fileName);
+        verify(fileHandler, never()).getFileContent(any());
+        assertNull(resp);
+    }
 
 }

@@ -42,13 +42,14 @@ public class RequestProcessorImpl implements RequestProcessor {
                     "Consider adding overwrite=true request header to overwrite existing file or change file name");
         }
 
-        try{
+        try {
             var saved = fileHolder.saveFile(fileName, byteArrayResource);
             if(saved){
                 return ResponseEntity.ok().body(String.format("File %s saved successfully on server", fileName));
             }
             return ResponseEntity.badRequest().body("File is either empty or absent, nothing to store");
         }catch (Exception ex){
+            log.error("Server error during 'save file' operation!", ex);
             return ResponseEntity.internalServerError().body(ex.getMessage());
         }
     }
