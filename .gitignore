@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+demo-client/downloadedFiles
+demo-server/savedFiles
