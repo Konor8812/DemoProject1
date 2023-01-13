@@ -1,8 +1,6 @@
-package com.illia.server.request_processor;
+package com.illia.server.request;
 
-import com.illia.server.file_holder.FileHolder;
-import com.illia.server.request_processor.RequestProcessor;
-import com.illia.server.request_processor.RequestProcessorImpl;
+import com.illia.server.file.FileHolder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

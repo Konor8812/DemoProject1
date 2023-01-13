@@ -1,4 +1,4 @@
-package com.illia.server.file_holder;
+package com.illia.server.file;
 
 import org.springframework.core.io.ByteArrayResource;
 

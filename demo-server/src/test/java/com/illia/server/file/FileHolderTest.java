@@ -1,16 +1,12 @@
-package com.illia.server.file_holder;
+package com.illia.server.file;
 
 import com.illia.server.config.ServerConfig;
-import com.illia.server.file_holder.FileUtil;
-import com.illia.server.file_holder.FileHolder;
-import com.illia.server.file_holder.FileHolderImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.*;
 import java.nio.file.Path;

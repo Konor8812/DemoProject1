@@ -1,6 +1,6 @@
 package com.illia.service;
 
-import com.illia.client.http_client.MyHttpClient;
+import com.illia.client.http.MyHttpClient;
 import com.illia.client.service.FileTransferService;
 import com.illia.client.service.FileHandlingService;
 import org.junit.jupiter.api.Test;

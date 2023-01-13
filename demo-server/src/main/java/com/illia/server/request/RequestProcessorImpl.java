@@ -1,16 +1,11 @@
-package com.illia.server.request_processor;
+package com.illia.server.request;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.illia.server.file_holder.FileHolder;
+import com.illia.server.file.FileHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.nio.file.Files;
 
 @Slf4j
 @Service

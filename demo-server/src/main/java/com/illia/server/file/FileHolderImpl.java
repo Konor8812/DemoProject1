@@ -1,4 +1,4 @@
-package com.illia.server.file_holder;
+package com.illia.server.file;
 
 import com.illia.server.config.ServerConfig;
 import lombok.extern.slf4j.Slf4j;

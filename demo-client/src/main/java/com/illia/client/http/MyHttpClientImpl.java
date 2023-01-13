@@ -1,4 +1,4 @@
-package com.illia.client.http_client;
+package com.illia.client.http;
 
 
 import com.illia.client.config.ClientConfig;

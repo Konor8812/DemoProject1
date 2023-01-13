@@ -1,6 +1,6 @@
 package com.illia.client.service;
 
-import com.illia.client.http_client.MyHttpClient;
+import com.illia.client.http.MyHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

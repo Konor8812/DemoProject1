@@ -1,11 +1,8 @@
-package com.illia.server.request_processor;
+package com.illia.server.request;
 
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 
 public interface RequestProcessor {
 

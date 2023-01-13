@@ -1,4 +1,4 @@
-package com.illia.server.file_holder;
+package com.illia.server.file;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;

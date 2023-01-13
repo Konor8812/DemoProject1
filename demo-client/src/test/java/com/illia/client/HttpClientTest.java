@@ -2,8 +2,8 @@ package com.illia.client;
 
 
 import com.illia.client.config.ClientConfig;
-import com.illia.client.http_client.MyHttpClient;
-import com.illia.client.http_client.MyHttpClientImpl;
+import com.illia.client.http.MyHttpClient;
+import com.illia.client.http.MyHttpClientImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -14,13 +14,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.Charset;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
