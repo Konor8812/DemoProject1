@@ -1,11 +1,9 @@
-package com.illia.client.service.processor_registry;
+package com.illia.client.service.processor;
 
 
 public enum OperationsRegistry {
-    SORT("sort", "sortOperationProcessor"),
-    MIN_VALUE("minValue", "minValueOperationProcessor"),
-    MAX_VALUE("maxValue", "maxValueOperationProcessor"),
-    DELETE("delete", "deleteValuesOperationProcessor");
+    SORT("sort", "sortOperationProcessorUnit"),
+    DELETE("delete", "deleteValuesOperationProcessorUnit");
 
     private final String operation;
     private final String processorName;

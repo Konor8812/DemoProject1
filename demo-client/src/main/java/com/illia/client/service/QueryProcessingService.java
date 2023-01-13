@@ -3,7 +3,8 @@ package com.illia.client.service;
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.IMDbMovieHolderImpl;
 import com.illia.client.model.IMDbMovieParser;
-import com.illia.client.service.processor_registry.ProcessorAssigner;
+import com.illia.client.service.processor.InvalidAttributeException;
+import com.illia.client.service.processor.ProcessorAssigner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -71,13 +72,14 @@ public class QueryProcessingService {
             try {
                 var result = processor.proceed(records, params);
                 return ResponseEntity.ok().body(result);
-            } catch (NoSuchFieldException e) {
-                return ResponseEntity.badRequest().body("Invalid attribute!");
+            } catch (InvalidAttributeException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
             }
         } else {
             return ResponseEntity.badRequest().body("Invalid/Unsupported operation!");
         }
     }
+
 
     private String validateParams(Map<String, String> params) {
         var fileName = params.get("fileName");

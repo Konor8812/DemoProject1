@@ -1,9 +1,10 @@
-package com.illia.client.service.processor_registry.processors;
+package com.illia.client.service.processor.unit;
+
 
 import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.service.processor.InvalidAttributeException;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -11,43 +12,40 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class SortOperationProcessor implements OperationProcessor {
-
+public class SortOperationProcessorUnit implements OperationProcessor{
 
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, Map<String, String> params) throws NoSuchFieldException {
+    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, Map<String, String> params) throws InvalidAttributeException {
         var attribute = params.get("attribute");
+
+        if(!IMDbMovieEntity.isAttributeValid(attribute)){
+            throw new InvalidAttributeException("No such attribute " + attribute);
+        }
+
         var order = params.get("order");
         long limit;
+
         try {
             limit = Long.parseLong(params.get("limit"));
+            if(limit < 0){
+                limit = 1;
+            }
         } catch (Exception e) {
             limit = Long.MAX_VALUE;
         }
 
         boolean shouldOrderAsc = !order.equals("desc");
 
-        var attributeField = IMDbMovieEntity.class.getDeclaredField(attribute);
-        attributeField.setAccessible(true);
-
         var comparator = getComparator(attribute, shouldOrderAsc);
 
         return records.stream()
-                .sorted((x1, x2) -> compare(x1, x2, attributeField, comparator))
+                .sorted((x1, x2) -> compare(x1.getFieldAccessor(attribute), x2.getFieldAccessor(attribute), comparator))
                 .limit(limit)
                 .collect(Collectors.toList());
     }
 
-    private int compare(IMDbMovieEntity x1, IMDbMovieEntity x2, Field attributeField, Comparator<Object> comparator) {
-        Object val1 = null;
-        Object val2 = null;
-        try {
-            val1 = attributeField.get(x1);
-            val2 = attributeField.get(x2);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return comparator.compare(val1, val2);
+    private int compare(String x1, String x2, Comparator<Object> comparator) {
+        return comparator.compare(x1, x2);
     }
 
 

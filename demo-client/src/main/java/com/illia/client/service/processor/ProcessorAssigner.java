@@ -1,6 +1,6 @@
-package com.illia.client.service.processor_registry;
+package com.illia.client.service.processor;
 
-import com.illia.client.service.processor_registry.processors.OperationProcessor;
+import com.illia.client.service.processor.unit.OperationProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
