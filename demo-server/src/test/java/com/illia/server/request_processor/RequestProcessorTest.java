@@ -1,4 +1,4 @@
-package com.illia.request_processor;
+package com.illia.server.request_processor;
 
 import com.illia.server.file_holder.FileHolder;
 import com.illia.server.request_processor.RequestProcessor;
@@ -39,7 +39,7 @@ public class RequestProcessorTest {
                 .thenReturn("Content".getBytes());
 
         var response = requestProcessor.proceedDownloadFile("existingFile");
-        verify(fileholder, atLeast(1)).getFile("existingFile");
+        verify(fileholder, times(1)).getFile("existingFile");
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertNotNull(response.getBody());
     }
@@ -54,7 +54,7 @@ public class RequestProcessorTest {
         var response = requestProcessor.proceedSaveFile(fileName, resource, true);
         var body = response.getBody();
 
-        verify(fileholder, atLeast(1)).saveFile(fileName, resource);
+        verify(fileholder, times(1)).saveFile(fileName, resource);
 
         assertEquals(String.format("File %s saved successfully on server", fileName), body);
         assertTrue(response.getStatusCode().is2xxSuccessful());

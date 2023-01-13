@@ -19,15 +19,15 @@ public class FileHolderImpl implements FileHolder {
     private ServerConfig serverConfig;
 
     @Autowired
-    FileHandler fileHandler;
+    FileUtil fileUtil;
 
-    private final Map<String, Path> savedFiles = new HashMap<>();
+    final Map<String, Path> savedFiles = new HashMap<>();
 
     @Override
     public byte[] getFile(String fileName) throws IOException {
         var filePath = savedFiles.get(fileName);
         if (filePath != null) {
-            return fileHandler.getFileContent(filePath);
+            return fileUtil.getFileContent(filePath);
         } else {
             return null;
         }
@@ -35,9 +35,9 @@ public class FileHolderImpl implements FileHolder {
 
     @Override
     public boolean saveFile(String fileName, ByteArrayResource byteArrayResource) throws IOException {
-        if (fileHandler.validateResource(byteArrayResource)) {
+        if (fileUtil.validateResource(byteArrayResource)) {
             var path = resolvePath(fileName);
-            var saved = fileHandler.saveFile(path, byteArrayResource);
+            var saved = fileUtil.saveFile(path, byteArrayResource);
             if(saved) {
                 savedFiles.put(fileName, path);
             }
@@ -54,7 +54,7 @@ public class FileHolderImpl implements FileHolder {
 
     @Override
     public boolean exists(String fileName) {
-        return savedFiles.containsKey(fileName) && fileHandler.exists(resolvePath(fileName));
+        return savedFiles.containsKey(fileName) && fileUtil.exists(resolvePath(fileName));
     }
 
     private Path resolvePath(String... args){

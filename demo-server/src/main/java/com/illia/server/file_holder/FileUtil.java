@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 @Slf4j
 @Component
-public class FileHandler {
+public class FileUtil {
     
     public byte[] getFileContent(Path path) throws IOException {
         return Files.readAllBytes(path);

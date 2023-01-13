@@ -1,4 +1,4 @@
-package com.illia.controller;
+package com.illia.server.controller;
 
 
 import com.illia.server.controller.DemoServerController;

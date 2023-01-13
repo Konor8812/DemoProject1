@@ -2,7 +2,7 @@ package com.illia.service;
 
 import com.illia.client.http_client.MyHttpClient;
 import com.illia.client.service.FileTransferService;
-import com.illia.client.service.FileHandlingProxyService;
+import com.illia.client.service.FileHandlingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,13 +10,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,7 +31,7 @@ public class FileTransferServiceTest {
     MyHttpClient client;
 
     @MockBean
-    FileHandlingProxyService fileHandlingProxyService;
+    FileHandlingService fileHandlingService;
 
     @Test
     public void uploadFileShouldResolveResourceAndCallClient() throws IOException {
@@ -43,14 +41,14 @@ public class FileTransferServiceTest {
 
         when(client.performUploadFileRequest(eq(fileName), eq(mockResource), anyBoolean()))
                 .thenReturn(ResponseEntity.ok().build());
-        when(fileHandlingProxyService.resolveMultipartFile(notNull()))
+        when(fileHandlingService.resolveMultipartFile(notNull()))
                 .thenReturn(mockResource);
 
         var response = service.uploadFile(fileName, mockMultipartFile, true);
 
         verify(client, times(1))
                 .performUploadFileRequest(eq(fileName), eq(mockResource), eq(true));
-        verify(fileHandlingProxyService, times(1))
+        verify(fileHandlingService, times(1))
                 .resolveMultipartFile(eq(mockMultipartFile));
         assertTrue(response.getStatusCode().is2xxSuccessful());
     }
@@ -62,7 +60,7 @@ public class FileTransferServiceTest {
         var mockMultipartFile = mock(MultipartFile.class);
         var byteArrayResource = mock(ByteArrayResource.class);
 
-        when(fileHandlingProxyService.resolveMultipartFile(notNull()))
+        when(fileHandlingService.resolveMultipartFile(notNull()))
                 .thenReturn(byteArrayResource);
 
         var mockException = mock(HttpClientErrorException.class);
@@ -78,7 +76,7 @@ public class FileTransferServiceTest {
 
         verify(client, times(1))
                 .performUploadFileRequest(fileName, byteArrayResource, false);
-        verify(fileHandlingProxyService, times(1))
+        verify(fileHandlingService, times(1))
                 .resolveMultipartFile(mockMultipartFile);
         assertTrue(response.getStatusCode().is4xxClientError());
         assertEquals("File already exists, no overwrite instructions", response.getBody());
@@ -87,7 +85,7 @@ public class FileTransferServiceTest {
     public void uploadFileWithMultipartFileNullShouldBeBadRequest() throws IOException {
         var response = service.uploadFile("fileName", null, true);
         verify(client, never()).performUploadFileRequest(any(), any(), anyBoolean());
-        verify(fileHandlingProxyService, never()).resolveMultipartFile(any());
+        verify(fileHandlingService, never()).resolveMultipartFile(any());
         assertTrue(response.getStatusCode().is4xxClientError());
         assertEquals("No file attached!", response.getBody());
     }
@@ -99,7 +97,7 @@ public class FileTransferServiceTest {
 
         when(client.performDownloadFileRequest(fileName))
                 .thenReturn(ResponseEntity.ok().body(contentAsBytes));
-        when(fileHandlingProxyService.saveFile(fileName, contentAsBytes, true))
+        when(fileHandlingService.saveFile(fileName, contentAsBytes, true))
                 .thenReturn(true);
 
         var response = service.downloadFile(fileName, true);
@@ -108,7 +106,7 @@ public class FileTransferServiceTest {
 
         verify(client, times(1))
                 .performDownloadFileRequest(fileName);
-        verify(fileHandlingProxyService, times(1))
+        verify(fileHandlingService, times(1))
                 .saveFile("existingFile", contentAsBytes, true);
     }
 
@@ -120,7 +118,7 @@ public class FileTransferServiceTest {
 
         var response = service.downloadFile(fileName, true);
         verify(client, times(1)).performDownloadFileRequest(fileName);
-        verify(fileHandlingProxyService, never()).saveFile(eq(fileName), any(), eq(true));
+        verify(fileHandlingService, never()).saveFile(eq(fileName), any(), eq(true));
         assertTrue(response.getStatusCode().is4xxClientError());
     }
 }

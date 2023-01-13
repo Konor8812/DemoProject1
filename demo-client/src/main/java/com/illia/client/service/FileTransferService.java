@@ -19,7 +19,7 @@ public class FileTransferService {
     private MyHttpClient client;
 
     @Autowired
-    private FileHandlingProxyService fileHandlingProxyService;
+    private FileHandlingService fileHandlingService;
 
 
     public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile, boolean overwrite) {
@@ -27,7 +27,7 @@ public class FileTransferService {
             return ResponseEntity.badRequest().body("No file attached!");
         }
         try {
-            var bytes = fileHandlingProxyService.resolveMultipartFile(multipartFile);
+            var bytes = fileHandlingService.resolveMultipartFile(multipartFile);
 
             return client.performUploadFileRequest(fileName, bytes, overwrite);
         } catch (IOException e) {
@@ -47,7 +47,7 @@ public class FileTransferService {
 
     public ResponseEntity<String> downloadFile(String fileName, boolean overwrite) {
         if (!overwrite) {
-            if(fileHandlingProxyService.exists(fileName)) {
+            if(fileHandlingService.exists(fileName)) {
                 return ResponseEntity.badRequest().body("File with such name exists! " +
                         "Consider adding &overwrite=true to url to overwrite existing file");
             }
@@ -56,7 +56,7 @@ public class FileTransferService {
         try {
             var resp = client.performDownloadFileRequest(fileName);
             var content = resp.getBody();
-            var saved = fileHandlingProxyService.saveFile(fileName, content, true);
+            var saved = fileHandlingService.saveFile(fileName, content, true);
             if(saved) {
                 return ResponseEntity.ok().body(String.format("File %s saved successfully", fileName));
             }
@@ -80,7 +80,7 @@ public class FileTransferService {
 
     public ResponseEntity<String> deleteFile(String fileName) {
         try {
-            var deleted = fileHandlingProxyService.deleteFile(fileName);
+            var deleted = fileHandlingService.deleteFile(fileName);
             if (deleted) {
                 return ResponseEntity.ok().body("Successfully deleted " + fileName);
             } else {

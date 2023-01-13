@@ -1,41 +1,56 @@
 package com.illia.client.service;
 
-import lombok.extern.slf4j.Slf4j;
+import com.illia.client.config.ClientConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Slf4j
 @Service
 public class FileHandlingService {
 
-    public boolean deleteFile(Path path) throws IOException {
-        return Files.deleteIfExists(path);
-    }
+    @Autowired
+    private ClientConfig clientConfig;
 
-    public boolean saveFile(Path filePath, byte[] content){
-        try (var os = new FileOutputStream(filePath.toFile());
-             var is = new ByteArrayInputStream(content)) {
-            is.transferTo(os);
-            os.flush();
-            return true;
-        }catch (Exception e){
-            log.error("Error occurred during saving file ", e);
-            return false;
-        }
-    }
+    @Autowired
+    FileUtil fileUtil;
 
     public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile) throws IOException {
-        return new ByteArrayResource(multipartFile.getBytes());
+        return fileUtil.resolveMultipartFile(multipartFile);
     }
 
-    public boolean exists(Path path) {
-        return Files.exists(path);
+    public boolean saveFile(String fileName, byte[] content, boolean overwrite) throws IOException {
+        var filePath = resolvePath(fileName);
+        if (overwrite) {
+            fileUtil.deleteFileIfExists(filePath);
+        }
+        return fileUtil.saveFile(filePath, content);
+    }
+
+    public boolean deleteFile(String fileName) throws IOException {
+        var filePath = resolveFilePath(fileName);
+        if(filePath != null){
+            return fileUtil.deleteFileIfExists(filePath);
+        }
+        return false;
+    }
+
+    public Path resolveFilePath(String fileName) {
+        Path filePath;
+        if (fileName != null && fileUtil.exists((filePath = resolvePath(fileName)))) {
+            return filePath;
+        }
+        return null;
+    }
+
+    public boolean exists(String fileName) {
+        return resolveFilePath(fileName) != null;
+    }
+
+    private Path resolvePath(String... args) {
+        return Path.of(clientConfig.getDownloadedFilesDirectoryPrefix() + String.join("/", args));
     }
 }
