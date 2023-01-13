@@ -1,41 +1,44 @@
 package com.illia.client.model;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Component
 @Data
-public class IMDbMovieReport {
+public class IMDbMovieParser {
 
-    private IMDbMovieReport() {
-    }
+    @Autowired
+    private IMDbMovieHolderImpl reportsHolder;
 
     private static Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+);([^;]+);([^;]+);(\\d+);(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
     private static Pattern grossRowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
-    private int entitiesAmount = 0;
-    private List<IMDbMovieEntity> reports;
 
-    public static IMDbMovieReport parse(File file) {
-        var result = new IMDbMovieReport();
+    public List<IMDbMovieEntity> parseFile(File file) {
+
         if (file.canRead()) {
             try (var linesStream = new BufferedReader(new FileReader(file)).lines()) {
-                result.reports = linesStream.skip(1)
-                        .map(result::parseRow)
+                var reports = linesStream.skip(1)
+                        .map(this::parseRow)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
+                reportsHolder.saveEntities(file.getName(), reports);
+                return reports;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        result.entitiesAmount = result.reports.size();
-        return result;
+        return List.of();
     }
 
     private IMDbMovieEntity parseRow(String row) {
@@ -50,21 +53,26 @@ public class IMDbMovieReport {
     }
 
     private IMDbMovieEntity tryBuild(Matcher matcher){
+
         return IMDbMovieEntity.builder()
-                .title(matcher.group(0))
-                .date(matcher.group(1))
-                .color(matcher.group(2))
-                .genre(matcher.group(3))
-                .language(matcher.group(4))
-                .country(matcher.group(5))
-                .rating(matcher.group(6))
-                .leadActor(matcher.group(7))
-                .directorName(matcher.group(7))
-                .IMBdScore(matcher.group(8))
-                .totalReviews(matcher.group(9))
-                .duration(matcher.group(10))
-                .grossRevenue(matcher.group(11))
-                .budget(matcher.group(12))
+                .title(matcher.group(1))
+                .date(matcher.group(2))
+                .color(matcher.group(3))
+                .genre(matcher.group(4))
+                .language(matcher.group(5))
+                .country(matcher.group(6))
+                .rating(matcher.group(7))
+                .leadActor(matcher.group(8))
+                .directorName(matcher.group(9))
+                .leadActorFBLikes(matcher.group(10))
+                .castFBLikes(matcher.group(11))
+                .directorFBLikes(matcher.group(12))
+                .movieFBLikes(matcher.group(13))
+                .IMBdScore(matcher.group(14).replace(",", "."))
+                .totalReviews(matcher.group(15))
+                .duration(matcher.group(16))
+                .grossRevenue(matcher.group(17))
+                .budget(matcher.group(18))
                 .build();
 
     }

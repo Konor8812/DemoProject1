@@ -19,6 +19,7 @@ public class IMDbMovieEntity {
     private String leadActorFBLikes;
     private String castFBLikes;
     private String directorFBLikes;
+    private String movieFBLikes;
     private String IMBdScore;
     private String totalReviews;
     private String duration;

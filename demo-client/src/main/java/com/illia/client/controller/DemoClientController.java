@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -20,6 +22,8 @@ public class DemoClientController {
     @Autowired
     private FileTransferService fileTransferService;
 
+    @Autowired
+    private QueryProcessingService queryProcessingService;
 
     @PostMapping(value = "/uploadFile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> uploadFile(@RequestParam(name = "fileName") String fileName,
@@ -39,4 +43,15 @@ public class DemoClientController {
     public ResponseEntity<String> deleteFile(@RequestParam(name = "fileName") String fileName) {
         return fileTransferService.deleteFile(fileName);
     }
+
+    @GetMapping("/query")
+    public ResponseEntity<Object> performOperation(@RequestParam Map<String, String> params) {
+        var response = queryProcessingService.performOperation(params);
+
+        var list = ((List<IMDbMovieEntity>) response.getBody());
+        list.forEach(x -> System.out.println(x.getTitle()));
+        list.forEach(x -> System.out.println(x.getIMBdScore()));
+        return null;
+    }
+
 }
