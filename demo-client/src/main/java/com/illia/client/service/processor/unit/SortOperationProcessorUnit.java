@@ -2,7 +2,7 @@ package com.illia.client.service.processor.unit;
 
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.service.processor.InvalidAttributeException;
+import com.illia.client.service.processor.OperationProcessorException;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -14,27 +14,39 @@ import java.util.stream.Collectors;
 @Component
 public class SortOperationProcessorUnit implements OperationProcessor{
 
+    /**
+     *  Required params:
+     *  attribute - must be valid fieldName;
+     *  order - any value(null included) other than "desc" is replaced with "asc"
+     *  limit - any value(null included) acceptable: negative integers and 0 are replaced with 1; null or invalid number format are replaced with Long.MAX_VALUE
+     */
+
+
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, Map<String, String> params) throws InvalidAttributeException {
+    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, Map<String, String> params) throws OperationProcessorException {
+        if(records == null || records.isEmpty()){
+            throw new OperationProcessorException("No records to proceed. This may be result of previous operations, consider reparsing file by setting reparse=true");
+        }
+
         var attribute = params.get("attribute");
 
         if(!IMDbMovieEntity.isAttributeValid(attribute)){
-            throw new InvalidAttributeException("No such attribute " + attribute);
+            throw new OperationProcessorException("No such attribute " + attribute);
         }
 
-        var order = params.get("order");
-        long limit;
 
+        long limit;
         try {
             limit = Long.parseLong(params.get("limit"));
-            if(limit < 0){
+            if(limit <= 0){
                 limit = 1;
             }
         } catch (Exception e) {
             limit = Long.MAX_VALUE;
         }
 
-        boolean shouldOrderAsc = !order.equals("desc");
+        var order = params.get("order");
+        boolean shouldOrderAsc = order == null || !order.equals("desc");
 
         var comparator = getComparator(attribute, shouldOrderAsc);
 

@@ -3,7 +3,7 @@ package com.illia.client.service.processor;
 
 public enum OperationsRegistry {
     SORT("sort", "sortOperationProcessorUnit"),
-    DELETE("delete", "deleteValuesOperationProcessorUnit");
+    DELETE("delete", "deleteOperationProcessorUnit");
 
     private final String operation;
     private final String processorName;
