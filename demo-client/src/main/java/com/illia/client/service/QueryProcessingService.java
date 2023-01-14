@@ -16,14 +16,14 @@ import java.util.Map;
 public class QueryProcessingService {
 
     @Autowired
-    FileHandlingService fileHandlingService;
+    private FileHandlingService fileHandlingService;
 
     @Autowired
-    ProcessorAssigner processorAssigner;
+    private ProcessorAssigner processorAssigner;
     @Autowired
-    IMDbMovieParser parser;
+    private IMDbMovieParser parser;
     @Autowired
-    IMDbMovieHolderImpl holder;
+    private IMDbMovieHolderImpl holder;
 
     /**
      * params:
@@ -34,7 +34,6 @@ public class QueryProcessingService {
      * order | not required, default asc
      * amount | not required, returns everything by default
      */
-
 
     public ResponseEntity<Object> performOperation(Map<String, String> params) {
         var validateParamsMsg = validateParams(params);
@@ -47,15 +46,15 @@ public class QueryProcessingService {
         var shouldParse = params.get("shouldParse");
         var operation = params.get("operation");
 
-        List<IMDbMovieEntity> records = null;
 
-        if (shouldParse == null || shouldParse.equals("false")) {
-            if (holder.holdsFile(fileName)) {
-                records = holder.getEntities();
-                shouldParse = "false";
-            } else {
-                shouldParse = "true";
-            }
+        List<IMDbMovieEntity> records = null;
+        if ((shouldParse == null
+                || shouldParse.equals("false"))
+                && holder.holdsFile(fileName)) {
+            records = holder.getEntities();
+            shouldParse = "false";
+        } else {
+            shouldParse = "true";
         }
 
         if (shouldParse.equals("true")) {
@@ -82,16 +81,19 @@ public class QueryProcessingService {
 
 
     private String validateParams(Map<String, String> params) {
+        StringBuilder responseBuilder = new StringBuilder();
         var fileName = params.get("fileName");
         var attribute = params.get("attribute");
         var operation = params.get("operation");
         if (fileName == null || fileName.isEmpty()) {
-            return "File name is not specified!";
-        } else if (attribute == null || attribute.isEmpty()) {
-            return "Attribute is not specified!";
-        } else if (operation == null || operation.isEmpty()) {
-            return "Operation is not specified!";
+             responseBuilder.append(" File name is not specified!");
         }
-        return "ok";
+        if (attribute == null || attribute.isEmpty()) {
+            responseBuilder.append(" Attribute is not specified!");
+        }
+        if (operation == null || operation.isEmpty()) {
+            responseBuilder.append(" Operation is not specified!");
+        }
+        return responseBuilder.length() == 0 ? "ok" : responseBuilder.toString();
     }
 }

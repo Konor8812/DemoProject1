@@ -1,4 +1,4 @@
-package com.illia.controller;
+package com.illia.client.controller;
 
 import com.illia.client.controller.DemoClientController;
 import com.illia.client.service.FileTransferService;

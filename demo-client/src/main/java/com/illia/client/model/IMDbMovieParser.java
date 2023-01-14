@@ -21,8 +21,11 @@ public class IMDbMovieParser {
     @Autowired
     private IMDbMovieHolderImpl reportsHolder;
 
-    private static Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+);([^;]+);([^;]+);(\\d+);(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
-    private static Pattern grossRowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White);([a-zA-Z-]+);([a-zA-Z]+);([^;]+);([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+);(\\d+);(\\d+);(\\d+,?\\d*);(\\d+);(\\d+);(\\d+);(\\d+)");
+    /**
+     * Title and date are mandatory, other attributes can be absent(null)
+     */
+    private static Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White)?;([a-zA-Z-]+)?;([a-zA-Z]+)?;([a-zA-Z ]+)?;([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+,?\\d*)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+)?");
+
 
     public List<IMDbMovieEntity> parseFile(File file) {
 
@@ -45,15 +48,12 @@ public class IMDbMovieParser {
         Matcher matcher;
         if ((matcher = rowPattern.matcher(row)).find()) {
             return tryBuild(matcher);
-        } else if ((matcher = grossRowPattern.matcher(row)).find()){
-            return tryBuild(matcher);
-        }else{
+        } else{
             return null;
         }
     }
 
     private IMDbMovieEntity tryBuild(Matcher matcher){
-
         return IMDbMovieEntity.builder()
                 .title(matcher.group(1))
                 .date(matcher.group(2))

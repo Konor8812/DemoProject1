@@ -1,4 +1,4 @@
-package com.illia.service;
+package com.illia.client.service;
 
 import com.illia.client.config.ClientConfig;
 import com.illia.client.service.FileHandlingService;

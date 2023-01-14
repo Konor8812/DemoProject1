@@ -1,4 +1,4 @@
-package com.illia.service;
+package com.illia.client.service;
 
 import com.illia.client.http.MyHttpClient;
 import com.illia.client.service.FileTransferService;
