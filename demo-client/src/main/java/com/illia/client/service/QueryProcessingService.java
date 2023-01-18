@@ -3,12 +3,14 @@ package com.illia.client.service;
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.IMDbMovieHolderImpl;
 import com.illia.client.model.IMDbMovieParser;
+import com.illia.client.model.request.QueryRequestEntity;
 import com.illia.client.service.processor.OperationProcessorException;
 import com.illia.client.service.processor.ProcessorAssigner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,51 +27,37 @@ public class QueryProcessingService {
     @Autowired
     private IMDbMovieHolderImpl holder;
 
-    /**
-     * params:
-     * fileName | required
-     * operation | required, possible values [delete, sort]
-     * attribute | required
-     * reparse | not required, default true
-     * order | not required, default asc
-     * amount | not required, returns everything by default
-     */
+    public ResponseEntity<Object> performOperation(QueryRequestEntity requestEntity) {
 
-    public ResponseEntity<Object> performOperation(Map<String, String> params) {
-        var validateParamsMsg = validateParams(params);
-
-        if (!validateParamsMsg.equals("ok")) {
-            return ResponseEntity.badRequest().body(validateParamsMsg);
+        var validationResult = requestEntity.getErrorMsg();
+        if (validationResult != null) {
+            return ResponseEntity.badRequest().body(validationResult);
         }
 
-        var fileName = params.get("fileName");
-        var shouldParse = params.get("shouldParse");
-        var operation = params.get("operation");
-
+        var fileName = requestEntity.getFileName();
+        var shouldParse = requestEntity.shouldParse();
+        var operation = requestEntity.getOperation();
 
         List<IMDbMovieEntity> records = null;
-        if ((shouldParse == null
-                || shouldParse.equals("false"))
-                && holder.holdsFile(fileName)) {
+
+        if(!shouldParse && holder.holdsFile(fileName)){
             records = holder.getEntities();
-            shouldParse = "false";
-        } else {
-            shouldParse = "true";
+        }else{
+            shouldParse = true;
         }
 
-        if (shouldParse.equals("true")) {
-            var path = fileHandlingService.resolveFilePath(fileName);
-            if (path != null) {
-                records = parser.parseFile(path.toFile());
-            } else {
-                return ResponseEntity.badRequest().body("No such file!");
-            }
+        if (shouldParse) {
+            records = requestParseFile(fileName);
         }
 
-        var processor = processorAssigner.assignProcessor(operation);
-        if (processor != null) {
+        if (records == null) {
+            return ResponseEntity.badRequest().body("Local cache is empty, consider reparsing file");
+        }
+
+        var biFunction = processorAssigner.assignProcessor(operation);
+        if (biFunction != null) {
             try {
-                var result = processor.proceed(records, params);
+                var result = biFunction.apply(records, requestEntity);
                 return ResponseEntity.ok().body(result);
             } catch (OperationProcessorException e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
@@ -79,21 +67,13 @@ public class QueryProcessingService {
         }
     }
 
-
-    private String validateParams(Map<String, String> params) {
-        StringBuilder responseBuilder = new StringBuilder();
-        var fileName = params.get("fileName");
-        var attribute = params.get("attribute");
-        var operation = params.get("operation");
-        if (fileName == null || fileName.isEmpty()) {
-             responseBuilder.append(" File name is not specified!");
+    private List<IMDbMovieEntity> requestParseFile(String fileName) {
+        var path = fileHandlingService.resolveFilePath(fileName);
+        if (path != null) {
+            return parser.parseFile(path.toFile());
         }
-        if (attribute == null || attribute.isEmpty()) {
-            responseBuilder.append(" Attribute is not specified!");
-        }
-        if (operation == null || operation.isEmpty()) {
-            responseBuilder.append(" Operation is not specified!");
-        }
-        return responseBuilder.length() == 0 ? "ok" : responseBuilder.toString();
+        return null;
     }
+
+
 }

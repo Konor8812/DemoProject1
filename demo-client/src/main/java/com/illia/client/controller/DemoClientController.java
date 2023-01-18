@@ -1,6 +1,7 @@
 package com.illia.client.controller;
 
 import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.model.request.QueryRequestEntity;
 import com.illia.client.service.FileTransferService;
 import com.illia.client.service.QueryProcessingService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ public class DemoClientController {
         return fileTransferService.uploadFile(fileName, multipartFile, overwrite);
     }
 
-
     @GetMapping("/downloadFile")
     public ResponseEntity<String> downloadFile(@RequestParam(name = "fileName") String fileName,
                                                @RequestParam(name = "overwrite", required = false, defaultValue = "false") Boolean overwrite) {
@@ -44,14 +44,11 @@ public class DemoClientController {
         return fileTransferService.deleteFile(fileName);
     }
 
-    @GetMapping("/query")
-    public ResponseEntity<Object> performOperation(@RequestParam Map<String, String> params) {
-        var response = queryProcessingService.performOperation(params);
-
-        var list = ((List<IMDbMovieEntity>) response.getBody());
-        list.forEach(x -> System.out.println(x.getTitle()));
-        list.forEach(x -> System.out.println(x.getIMBdScore()));
-        return null;
+    @GetMapping(value = "/query", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> performOperation(@RequestBody QueryRequestEntity entity) {
+        var response = queryProcessingService.performOperation(entity);
+        // still unsure where to form ResponseEntities, have questions about it
+        return ResponseEntity.ok("ok");
     }
 
 }

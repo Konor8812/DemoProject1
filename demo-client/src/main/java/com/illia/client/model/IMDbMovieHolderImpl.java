@@ -17,6 +17,9 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
 
     @Override
     public List<IMDbMovieEntity> getEntities() {
+        if(entities.isEmpty()){
+            return null;
+        }
         return entities;
     }
 
