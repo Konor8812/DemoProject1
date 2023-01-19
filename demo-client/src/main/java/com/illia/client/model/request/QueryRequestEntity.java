@@ -52,7 +52,6 @@ public class QueryRequestEntity {
             this.limit = solveLimitParam(limit);
             this.order = solveOrderParam(order);
             this.valueForDeleteOperation = valueForDeleteOperation;
-
         } else {
             errorMsg = validateParamsMsg;
         }
@@ -79,7 +78,7 @@ public class QueryRequestEntity {
     }
 
     private boolean fixShouldParseParam(String shouldParse) {
-        return shouldParse.equals("true");
+        return "true".equals(shouldParse);
     }
 
     private String validateAndSolveParams(String fileName, String operation, String attribute, String valueForDeleteOperation) {
@@ -95,7 +94,7 @@ public class QueryRequestEntity {
 
         if (!OperationsRegistry.isOperationSupported(operation)) {
             responseBuilder.append(" This operation is not supported!");
-            if (operation.equalsIgnoreCase("delete") && valueForDeleteOperation.isEmpty()) {
+            if ("delete".equalsIgnoreCase(operation) && valueForDeleteOperation.isEmpty()) {
                 responseBuilder.append(" Value for delete operation is not specified!");
             }
         }

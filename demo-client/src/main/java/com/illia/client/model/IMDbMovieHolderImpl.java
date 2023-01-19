@@ -16,8 +16,8 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
     }
 
     @Override
-    public List<IMDbMovieEntity> getEntities() {
-        if(entities.isEmpty()){
+    public List<IMDbMovieEntity> getEntities(String fileName) {
+        if(!holdsFile(fileName) || entities.isEmpty()){
             return null;
         }
         return entities;

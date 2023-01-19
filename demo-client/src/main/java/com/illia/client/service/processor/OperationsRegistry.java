@@ -19,6 +19,9 @@ public enum OperationsRegistry {
 
     public static boolean isOperationSupported(String operation){
         try{
+            if (operation == null) {
+                return false;
+            }
             OperationsRegistry.valueOf(operation.toUpperCase());
             return true;
         }catch (IllegalArgumentException e){

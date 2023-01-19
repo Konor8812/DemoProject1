@@ -6,7 +6,7 @@ import java.util.List;
 public interface IMDbMovieHolder {
 
     String getFileName();
-    List<IMDbMovieEntity> getEntities();
+    List<IMDbMovieEntity> getEntities(String fileName);
     List<IMDbMovieEntity> saveEntities(String fileName, List<IMDbMovieEntity> report);
     boolean isEmpty();
     boolean holdsFile(String fileName);

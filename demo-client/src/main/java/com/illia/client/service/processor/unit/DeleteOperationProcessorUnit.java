@@ -1,53 +1,46 @@
 package com.illia.client.service.processor.unit;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.service.processor.OperationProcessorException;
+import com.illia.client.model.IMDbMovieHolder;
+import com.illia.client.model.request.QueryRequestEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class DeleteOperationProcessorUnit implements OperationProcessor {
+
+    @Autowired
+    IMDbMovieHolder holder;
 
     /**
      * Deletes all entities where 'attribute' = value
-     * if value absent(null) deletes all entities where 'attribute' is null
      * e. g.
      * attribute = "date", value = "4/9/39"
      * this deletes all entities where date = "4/9/39" and returns rest as List
      */
 
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, Map<String, String> params) throws OperationProcessorException {
-        if(records == null || records.isEmpty()){
-            throw new OperationProcessorException("No records to proceed. This may be result of previous operations, consider reparsing file by setting reparse=true");
-        }
-        var attribute = params.get("attribute");
-        if (!IMDbMovieEntity.isAttributeValid(attribute)) {
-            throw new OperationProcessorException("No such attribute " + attribute);
-        }
-        var value = params.get("value");
+    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryRequestEntity requestEntity){
+        var attribute = requestEntity.getAttribute();
+        var value = requestEntity.getValueForDeleteOperation();
+
         Predicate<IMDbMovieEntity> filterPredicate;
-        if(value != null){
-            filterPredicate = x -> {
-                var attrValue = x.getFieldAccessor(attribute);
-                if(attrValue != null){
-                    return !attrValue.equals(value);
-                }else {
-                    return true;
-                }
-            };
-        }else {
-            filterPredicate = x -> {
-                var attrValue = x.getFieldAccessor(attribute);
-                return attrValue.isEmpty();
-            };
+        if (value != null) {
+            filterPredicate = x -> !value.equals(x.getFieldAccessor(attribute));
+        } else {
+            filterPredicate = x -> !(x.getFieldAccessor(attribute) == null);
         }
-        return records.stream()
+        var result = records.stream()
                 .filter(filterPredicate)
                 .collect(Collectors.toList());
+        log.info("Input :{} entities, Output :{} entities, deleted :{}", records.size(), result.size(), records.size() - result.size());
+        holder.applyChanges(result);
+        return result;
     }
 }

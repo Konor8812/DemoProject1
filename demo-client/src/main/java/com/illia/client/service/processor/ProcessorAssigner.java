@@ -22,8 +22,8 @@ public class ProcessorAssigner {
     DeleteOperationProcessorUnit deleteOperationProcessorUnit;
 
     // ok?
-    public BiFunction<List<IMDbMovieEntity>, QueryRequestEntity, List<IMDbMovieEntity>> assignProcessor(String operation) {
-        operation = operation.toLowerCase();
+    public BiFunction<List<IMDbMovieEntity>, QueryRequestEntity, List<IMDbMovieEntity>> assignProcessor(QueryRequestEntity requestEntity) {
+        var operation = requestEntity.getOperation().toLowerCase();
         switch (operation){
             case "sort":
                 return sortOperationProcessorUnit::proceed;

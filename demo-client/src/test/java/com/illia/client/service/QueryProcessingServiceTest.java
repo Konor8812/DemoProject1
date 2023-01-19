@@ -1,7 +1,9 @@
 package com.illia.client.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.illia.client.model.IMDbMovieHolderImpl;
 import com.illia.client.model.IMDbMovieParser;
+import com.illia.client.model.request.QueryRequestEntity;
 import com.illia.client.service.processor.ProcessorAssigner;
 import com.illia.client.service.processor.unit.OperationProcessor;
 import org.junit.jupiter.api.Test;
@@ -16,9 +18,9 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -41,95 +43,73 @@ public class QueryProcessingServiceTest {
     @MockBean
     IMDbMovieHolderImpl holder;
 
-    private final String fileName = "fileName";
-    private final String operation = "someOperation";
-    private final String attribute = "anyAttribute";
-
     @Test
-    public void performOperationTestWithEmptyParamsMap() {
-        Map<String, String> paramsMap = new HashMap<>();
-        var result = queryProcessingService.performOperation(paramsMap).getBody();
-        assertTrue(result instanceof String);
-        var resultAsString = (String) result;
-        assertTrue(resultAsString.contains("File name is not specified!"));
-        assertTrue(resultAsString.contains("Attribute is not specified!"));
-        assertTrue(resultAsString.contains("Operation is not specified!"));
+    public void performOperationShouldReturnBadRequestWithInvalidParamsMsg() {
+        var requestEntity = mock(QueryRequestEntity.class);
+        when(requestEntity.getErrorMsg()).thenReturn("");
+        var result = queryProcessingService.performOperation(requestEntity);
+        var body = result.getBody();
+        assertTrue(body instanceof String);
+        assertTrue(result.getStatusCode().is4xxClientError());
         verifyNoInteractions(parser, holder, processorAssigner, fileHandlingService);
     }
 
+    private QueryRequestEntity buildRequestEntity(String fileName,
+                                                  String operation,
+                                                  String attribute,
+                                                  String shouldParse,
+                                                  String limit,
+                                                  String order,
+                                                  String valueForDeleteOperation) {
+        return new QueryRequestEntity(fileName, operation, attribute, shouldParse, limit, order, valueForDeleteOperation);
+    }
 
+    @SuppressWarnings("unchecked")
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    public void performOperationTestWithValidMandatoryParamsPresent(boolean fileHolderHoldsFile) {
-        Map<String, String> paramsMap = getMandatoryParamsMap();
+    @CsvSource({"true,true",
+            "true,false",
+            "false,true",
+            "true,false"})
+    public void performOperationTestShouldParseParam(boolean shouldParse, boolean fileHolderHoldsFile) {
+        var mockRequestEntity = mock(QueryRequestEntity.class);
+        when(mockRequestEntity.shouldParse())
+                .thenReturn(shouldParse);
 
-        var mockPath = mock(Path.class);
-        var mockProcessor = mock(OperationProcessor.class);
         var mockEntitiesList = mock(List.class);
-
-        when(holder.holdsFile(fileName))
-                .thenReturn(fileHolderHoldsFile);
-        when(processorAssigner.assignProcessor(operation))
-                .thenReturn(mockProcessor);
-        when(fileHandlingService.resolveFilePath(eq(fileName)))
+        var mockPath = mock(Path.class);
+        when(fileHandlingService.resolveFilePath(any()))
                 .thenReturn(mockPath);
-        when(parser.parseFile(mockPath.toFile()))
-                .thenReturn(mockEntitiesList);
-        when(mockProcessor.proceed(mockEntitiesList, paramsMap))
+        when(holder.getEntities(any()))
                 .thenReturn(mockEntitiesList);
 
-        if(fileHolderHoldsFile){
-            when(holder.getEntities())
-                    .thenReturn(mockEntitiesList);
+        // heres question if try/catch for part of method test is ok
+        var mockProcessor = mock(BiFunction.class);
+        when(processorAssigner.assignProcessor(any()))
+                .thenReturn(mockProcessor);
+        when(mockProcessor.apply(any(), any()))
+                .thenReturn(mockEntitiesList);
+
+        var response = queryProcessingService.performOperation(mockRequestEntity);
+
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+        if (shouldParse) {
+            verifyNoInteractions(holder);
+            verify(fileHandlingService, times(1)).resolveFilePath(any());
+            verify(parser, times(1)).parseFile(any());
+        } else {
+            verify(holder, times(1)).getEntities(any());
+            if (fileHolderHoldsFile) {
+                verifyNoInteractions(parser);
+                verifyNoInteractions(fileHandlingService);
+            } else {
+                verify(fileHandlingService, times(1)).resolveFilePath(any());
+                verify(parser, times(1)).parseFile(any());
+            }
         }
 
-        var response = queryProcessingService.performOperation(paramsMap);
-
-        verify(holder, times(1)).holdsFile(eq(fileName));
-        if(fileHolderHoldsFile){
-            verify(holder, times(1)).getEntities();
-        }else{
-            verify(fileHandlingService, times(1)).resolveFilePath(eq(fileName));
-            verify(parser, times(1)).parseFile(mockPath.toFile());
-        }
-
-        verify(processorAssigner, times(1)).assignProcessor(eq(operation));
-        verify(mockProcessor, times(1)).proceed(mockEntitiesList, paramsMap);
+        verify(processorAssigner, times(1)).assignProcessor(any());
+        verify(mockProcessor, times(1)).apply(any(), any());
         assertEquals(mockEntitiesList, response.getBody());
     }
 
-    @ParameterizedTest
-    @CsvSource({"false,false", "false,true", "true,false", "true,true", "invalidValue,true", "invalidValue,false"})
-    public void performOperationTestParseParamWithDifferentFileHolderResponse(String shouldReparse, boolean fileHolderHoldsFile) {
-        when(holder.holdsFile(fileName))
-                .thenReturn(fileHolderHoldsFile);
-
-        Map<String, String> paramsMap = getMandatoryParamsMap();
-        paramsMap.put("shouldParse", shouldReparse);
-
-        queryProcessingService.performOperation(paramsMap);
-
-        if(shouldReparse.equals("false")){
-            verify(holder, times(1)).holdsFile(fileName);
-            if(fileHolderHoldsFile) {
-                verify(holder, times(1)).getEntities();
-            }else {
-                verify(holder, never()).getEntities();
-                verify(fileHandlingService, times(1)).resolveFilePath(eq(fileName));
-            }
-        }else{
-            verify(holder, never()).holdsFile(any());
-            verify(holder, never()).getEntities();
-            verify(fileHandlingService, times(1)).resolveFilePath(eq(fileName));
-        }
-
-    }
-
-    private Map<String, String> getMandatoryParamsMap(){
-        Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("fileName", fileName);
-        paramsMap.put("operation", operation);
-        paramsMap.put("attribute", attribute);
-        return paramsMap;
-    }
 }
