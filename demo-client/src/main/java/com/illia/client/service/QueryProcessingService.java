@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class QueryProcessingService {
@@ -36,7 +34,6 @@ public class QueryProcessingService {
 
         var fileName = requestEntity.getFileName();
         var shouldParse = requestEntity.shouldParse();
-        var operation = requestEntity.getOperation();
 
         List<IMDbMovieEntity> records = null;
 
@@ -51,9 +48,10 @@ public class QueryProcessingService {
         }
 
         if (records == null) {
-            return ResponseEntity.badRequest().body("Local cache is empty, consider reparsing file");
+            return ResponseEntity.badRequest().body("No data to proceed in both local cache and requested file!");
         }
 
+        var operation = requestEntity.getOperation();
         var biFunction = processorAssigner.assignProcessor(operation);
         if (biFunction != null) {
             try {

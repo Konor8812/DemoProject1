@@ -1,32 +1,38 @@
 package com.illia.client.service.processor;
 
-import com.illia.client.service.processor.unit.OperationProcessor;
+import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.service.processor.unit.DeleteOperationProcessorUnit;
+import com.illia.client.service.processor.unit.SortOperationProcessorUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.function.BiFunction;
 
 @Slf4j
 @Component
 public class ProcessorAssigner {
 
     @Autowired
-    ApplicationContext applicationContext;
+    SortOperationProcessorUnit sortOperationProcessorUnit;
+    @Autowired
+    DeleteOperationProcessorUnit deleteOperationProcessorUnit;
 
-    public OperationProcessor assignProcessor(String operation) {
-        try{
-            return Stream.of(OperationsRegistry.values())
-                    .filter(x -> x.getOperation().equals(operation))
-                    .findFirst()
-                    .map(operationsRegistry ->
-                            applicationContext.getBean(operationsRegistry.getProcessorName(), OperationProcessor.class))
-                    .orElse(null);
-        }catch (Exception ex){
-            log.error("Error during operation processor assigning ", ex);
-            throw ex;
+    // ok?
+    public BiFunction<List<IMDbMovieEntity>, QueryRequestEntity, List<IMDbMovieEntity>> assignProcessor(String operation) {
+        operation = operation.toLowerCase();
+        switch (operation){
+            case "sort":
+                return sortOperationProcessorUnit::proceed;
+            case "delete":
+                return deleteOperationProcessorUnit::proceed;
+
+            default:
+                return null;
         }
+
     }
 }

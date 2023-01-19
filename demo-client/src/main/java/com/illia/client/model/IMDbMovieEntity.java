@@ -49,7 +49,7 @@ public class IMDbMovieEntity {
             attributesList.add(13, "totalReviews");
             attributesList.add(14, "duration");
             attributesList.add(15, "grossRevenue");
-            attributesList.add(15, "budget");
+            attributesList.add(16, "budget");
         }
         return attributesList.contains(attribute);
     }

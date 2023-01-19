@@ -2,6 +2,8 @@ package com.illia.client.model.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.service.processor.OperationsRegistry;
 import lombok.Data;
 
 
@@ -9,12 +11,13 @@ import lombok.Data;
 public class QueryRequestEntity {
 
     /**
-     * fileName | required
-     * operation | required, implemented by now: [delete, sort]
-     * attribute | required
-     * shouldParse | not required, default false
-     * order | not required, default asc
-     * amount | not required, returns everything by default
+     * fileName | mandatory
+     * operation | mandatory, implemented operations by now: [delete, sort]
+     * attribute | mandatory
+     * shouldParse | not required, instructs to parse file instead of taking cashed values default false
+     * order | not required, used in SORT, default asc
+     * amount | not required, used in SORT, returns everything by default
+     * value | required for DELETE, ignored otherwise
      */
 
     private String fileName;
@@ -23,6 +26,7 @@ public class QueryRequestEntity {
     private boolean shouldParse;
     private long limit;
     private String order;
+    private String valueForDeleteOperation;
 
     private String errorMsg = null;
 
@@ -32,38 +36,44 @@ public class QueryRequestEntity {
                               @JsonProperty(value = "attribute") String attribute,
                               @JsonProperty(value = "shouldParse", defaultValue = "false") String shouldParse,
                               @JsonProperty(value = "limit", defaultValue = "0x7fffffffffffffffL") String limit,
-                              @JsonProperty(value = "order", defaultValue = "asc") String order) {
-        var validateParamsMsg = validateParams(fileName, operation, attribute);
-        System.out.println(validateParamsMsg);
-        if (validateParamsMsg.equals("ok")) {
+                              @JsonProperty(value = "order", defaultValue = "asc") String order,
+                              @JsonProperty(value = "value") String valueForDeleteOperation) {
+        var validateParamsMsg = validateAndSolveParams(
+                fileName,
+                operation,
+                attribute,
+                valueForDeleteOperation);
+        if (validateParamsMsg.isEmpty()) {
             this.fileName = fileName;
             this.operation = operation;
             this.attribute = attribute;
 
             this.shouldParse = fixShouldParseParam(shouldParse);
-            this.limit = fixLimitParam(limit);
-            this.order = fixOrderParam(order);
+            this.limit = solveLimitParam(limit);
+            this.order = solveOrderParam(order);
+            this.valueForDeleteOperation = valueForDeleteOperation;
+
         } else {
             errorMsg = validateParamsMsg;
         }
 
     }
 
-    private String fixOrderParam(String order) {
-        if(!order.equals("desc")){
+    private String solveOrderParam(String order) {
+        if (!"desc".equals(order)) {
             return "asc";
         }
         return order;
     }
 
-    private long fixLimitParam(String limit) {
-        try{
+    private long solveLimitParam(String limit) {
+        try {
             var res = Long.parseLong(limit);
-            if(res <= 0){
+            if (res <= 0) {
                 return 1;
             }
             return res;
-        }catch (Exception e){
+        } catch (Exception e) {
             return Long.MAX_VALUE;
         }
     }
@@ -72,23 +82,28 @@ public class QueryRequestEntity {
         return shouldParse.equals("true");
     }
 
-    private String validateParams(String fileName, String operation, String attribute) {
+    private String validateAndSolveParams(String fileName, String operation, String attribute, String valueForDeleteOperation) {
         StringBuilder responseBuilder = new StringBuilder();
 
         if (fileName == null || fileName.isEmpty()) {
             responseBuilder.append(" File name is not specified!");
         }
-        if (attribute == null || attribute.isEmpty()) {
-            responseBuilder.append(" Attribute is not specified!");
-        }
-        if (operation == null || operation.isEmpty()) {
-            responseBuilder.append(" Operation is not specified!");
-        }
-        return responseBuilder.length() == 0 ? "ok" : responseBuilder.toString();
 
+        if (!IMDbMovieEntity.isAttributeValid(attribute)) {
+            responseBuilder.append(" There's no such attribute!");
+        }
+
+        if (!OperationsRegistry.isOperationSupported(operation)) {
+            responseBuilder.append(" This operation is not supported!");
+            if (operation.equalsIgnoreCase("delete") && valueForDeleteOperation.isEmpty()) {
+                responseBuilder.append(" Value for delete operation is not specified!");
+            }
+        }
+        return responseBuilder.length() == 0 ? "" : responseBuilder.toString();
     }
 
-    public boolean shouldParse(){
+
+    public boolean shouldParse() {
         return shouldParse;
     }
 

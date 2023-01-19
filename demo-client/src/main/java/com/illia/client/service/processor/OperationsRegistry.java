@@ -1,23 +1,30 @@
 package com.illia.client.service.processor;
 
 
+import java.util.Locale;
+
 public enum OperationsRegistry {
-    SORT("sort", "sortOperationProcessorUnit"),
-    DELETE("delete", "deleteOperationProcessorUnit");
+    SORT("sort"),
+    DELETE("delete");
 
     private final String operation;
-    private final String processorName;
 
-    OperationsRegistry(String operation, String processorName){
+    OperationsRegistry(String operation){
         this.operation = operation;
-        this.processorName = processorName;
     }
 
     public String getOperation() {
         return operation;
     }
 
-    public String getProcessorName() {
-        return processorName;
+    public static boolean isOperationSupported(String operation){
+        try{
+            OperationsRegistry.valueOf(operation.toUpperCase());
+            return true;
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+            return false;
+        }
     }
+
 }

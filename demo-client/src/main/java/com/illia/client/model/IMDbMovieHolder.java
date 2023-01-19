@@ -10,4 +10,6 @@ public interface IMDbMovieHolder {
     List<IMDbMovieEntity> saveEntities(String fileName, List<IMDbMovieEntity> report);
     boolean isEmpty();
     boolean holdsFile(String fileName);
+
+    void applyChanges(List<IMDbMovieEntity> entities);
 }

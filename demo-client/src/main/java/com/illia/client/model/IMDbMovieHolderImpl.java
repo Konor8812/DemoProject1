@@ -37,8 +37,15 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
 
     @Override
     public boolean holdsFile(String fileName) {
+        if(fileName == null){
+            return false;
+        }
+        return fileName.equals(getFileName());
+    }
 
-        return getFileName() != null && getFileName().equals(fileName);
+    @Override
+    public void applyChanges(List<IMDbMovieEntity> entities) {
+        this.entities = entities;
     }
 
 }

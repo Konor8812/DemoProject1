@@ -48,7 +48,7 @@ public class DemoClientController {
     public ResponseEntity<Object> performOperation(@RequestBody QueryRequestEntity entity) {
         var response = queryProcessingService.performOperation(entity);
         // still unsure where to form ResponseEntities, have questions about it
-        return ResponseEntity.ok("ok");
+        return response;
     }
 
 }
