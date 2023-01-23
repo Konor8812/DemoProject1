@@ -3,7 +3,8 @@ package com.illia.client.service.processor.unit;
 
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.IMDbMovieHolder;
-import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.model.request.entity.QueryEntity;
+import com.illia.client.model.request.entity.SortQueryEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,16 +27,14 @@ public class SortOperationProcessorUnit implements OperationProcessor {
      */
 
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryRequestEntity requestEntity){
-        var attribute = requestEntity.getAttribute();
-        long limit = requestEntity.getLimit();
-        var order = requestEntity.getOrder();
-        boolean shouldOrderAsc = "asc".equals(order);
+    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryEntity queryEntity){
+        var attribute = ((SortQueryEntity) queryEntity).getAttribute().getAttributeValue();
+        boolean shouldOrderAsc = ((SortQueryEntity) queryEntity).getOrder().getOrderValue().equals("ASC");
 
         var comparator = getComparator(attribute, shouldOrderAsc);
         var result = records.stream()
                 .sorted((x1, x2) -> compare(x1.getFieldAccessor(attribute), x2.getFieldAccessor(attribute), comparator))
-                .limit(limit)
+                .limit(((SortQueryEntity) queryEntity).getLimit())
                 .collect(Collectors.toList());
 
         log.info("Input :{} entities, Output :{} entities", records.size(), result.size());
@@ -72,30 +71,12 @@ public class SortOperationProcessorUnit implements OperationProcessor {
     }
 
     private Comparator<Object> getDoubleComparator(boolean shouldOrderAsc) {
-        Comparator<Object> comparator = (o1, o2) -> {
-            if (o1 == null) {
-                return -1;
-            } else if (o2 == null) {
-                return 1;
-            }
-            var doubleValue1 = Double.parseDouble((String) o1);
-            var doubleValue2 = Double.parseDouble((String) o2);
-            return Double.compare(doubleValue1, doubleValue2);
-        };
+        Comparator<Object> comparator = Comparator.comparingDouble(o -> Double.parseDouble((String) o));
         return shouldOrderAsc ? comparator : comparator.reversed();
     }
 
     private Comparator<Object> getLongComparator(boolean shouldOrderAsc) {
-        Comparator<Object> comparator = (o1, o2) -> {
-            if (o1 == null) {
-                return -1;
-            } else if (o2 == null) {
-                return 1;
-            }
-            var longValue1 = Long.parseLong((String) o1);
-            var longValue2 = Long.parseLong((String) o2);
-            return Long.compare(longValue1, longValue2);
-        };
+        Comparator<Object> comparator = Comparator.comparingLong(o -> Long.parseLong((String) o));
         return shouldOrderAsc ? comparator : comparator.reversed();
     }
 
@@ -103,9 +84,9 @@ public class SortOperationProcessorUnit implements OperationProcessor {
         Comparator<Object> comparator = (o1, o2) -> {
             var stringValue1 = (String) o1;
             var stringValue2 = (String) o2;
-            if (stringValue1 == null || stringValue1.isEmpty()) {
+            if (stringValue1.isBlank()) {
                 return -1;
-            } else if (stringValue2 == null || stringValue2.isEmpty()) {
+            } else if (stringValue2.isBlank()) {
                 return 1;
             }
             return stringValue1.compareTo(stringValue2);
@@ -119,9 +100,9 @@ public class SortOperationProcessorUnit implements OperationProcessor {
 
             var stringValue1 = (String) o1;
             var stringValue2 = (String) o2;
-            if (stringValue1 == null || stringValue1.isEmpty()) {
+            if (stringValue1.isEmpty()) {
                 return -1;
-            } else if (stringValue2 == null || stringValue2.isEmpty()) {
+            } else if (stringValue2.isEmpty()) {
                 return 1;
             }
 

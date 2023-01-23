@@ -32,7 +32,11 @@ public enum AttributeRegistry {
 
     public static AttributeRegistry getAttributeValue(String attribute){
         if(attribute != null){
-            return AttributeRegistry.valueOf(attribute);
+            try{
+                return AttributeRegistry.valueOf(attribute);
+            }catch (IllegalArgumentException ex){
+                return null;
+            }
         }
         return null;
     }

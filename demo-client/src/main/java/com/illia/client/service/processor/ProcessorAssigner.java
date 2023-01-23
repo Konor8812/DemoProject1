@@ -1,7 +1,8 @@
 package com.illia.client.service.processor;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.model.request.creator.RequestParams;
+import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.service.processor.unit.DeleteOperationProcessorUnit;
 import com.illia.client.service.processor.unit.SortOperationProcessorUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -21,18 +22,14 @@ public class ProcessorAssigner {
     @Autowired
     DeleteOperationProcessorUnit deleteOperationProcessorUnit;
 
-    // ok?
-    public BiFunction<List<IMDbMovieEntity>, QueryRequestEntity, List<IMDbMovieEntity>> assignProcessor(QueryRequestEntity requestEntity) {
-        var operation = requestEntity.getOperation().toLowerCase();
-        switch (operation){
-            case "sort":
+    public BiFunction<List<IMDbMovieEntity>, QueryEntity, List<IMDbMovieEntity>> assignProcessor(QueryEntity queryEntity) {
+        switch (queryEntity.getOperation()) {
+            case SORT:
                 return sortOperationProcessorUnit::proceed;
-            case "delete":
+            case DELETE:
                 return deleteOperationProcessorUnit::proceed;
-
             default:
                 return null;
         }
-
     }
 }

@@ -3,7 +3,7 @@ package com.illia.client.service;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.illia.client.model.IMDbMovieHolderImpl;
 import com.illia.client.model.IMDbMovieParser;
-import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.service.processor.ProcessorAssigner;
 import com.illia.client.service.processor.unit.OperationProcessor;
 import org.junit.jupiter.api.Test;
@@ -43,73 +43,96 @@ public class QueryProcessingServiceTest {
     @MockBean
     IMDbMovieHolderImpl holder;
 
-    @Test
-    public void performOperationShouldReturnBadRequestWithInvalidParamsMsg() {
-        var requestEntity = mock(QueryRequestEntity.class);
-        when(requestEntity.getErrorMsg()).thenReturn("");
-        var result = queryProcessingService.performOperation(requestEntity);
-        var body = result.getBody();
-        assertTrue(body instanceof String);
-        assertTrue(result.getStatusCode().is4xxClientError());
-        verifyNoInteractions(parser, holder, processorAssigner, fileHandlingService);
+    @SuppressWarnings("unchecked")
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void performOperationTestShouldParseParam(boolean shouldParse) {
+        var requestEntity = mock(QueryEntity.class);
+        var fileName = "fileName";
+
+        when(requestEntity.getFileName())
+                .thenReturn(fileName);
+        when(requestEntity.shouldParse())
+                .thenReturn(shouldParse);
+
+        if (shouldParse) {
+            var entitiesList = mock(List.class);
+            var path = mock(Path.class);
+            when(fileHandlingService.resolveFilePath(any()))
+                    .thenReturn(path);
+            when(parser.parseFile(eq(path.toFile())))
+                    .thenReturn(entitiesList);
+            when(processorAssigner.assignProcessor(eq(requestEntity)))
+                    .thenReturn(mock(BiFunction.class));
+
+            var response = queryProcessingService.performOperation(requestEntity);
+
+            assertTrue(response.getStatusCode().is2xxSuccessful());
+            verify(fileHandlingService, times(1))
+                    .resolveFilePath(eq(fileName));
+            verify(parser, times(1))
+                    .parseFile(path.toFile());
+            verify(processorAssigner, times(1))
+                    .assignProcessor(eq(requestEntity));
+
+        } else {
+            when(holder.getEntities(eq(fileName)))
+                    .thenReturn(null);
+
+            var response = queryProcessingService.performOperation(requestEntity);
+            assertTrue(response.getStatusCode().is4xxClientError());
+            assertEquals("No data in local cache!",
+                    response.getBody());
+
+            verify(holder, times(1)).getEntities(eq(fileName));
+            verifyNoInteractions(parser, fileHandlingService, processorAssigner);
+        }
+
+
     }
 
-    private QueryRequestEntity buildRequestEntity(String fileName,
-                                                  String operation,
-                                                  String attribute,
-                                                  String shouldParse,
-                                                  String limit,
-                                                  String order,
-                                                  String valueForDeleteOperation) {
-        return new QueryRequestEntity(fileName, operation, attribute, shouldParse, limit, order, valueForDeleteOperation);
-    }
 
     @SuppressWarnings("unchecked")
     @ParameterizedTest
-    @CsvSource({"true,true",
-            "true,false",
-            "false,true",
-            "true,false"})
-    public void performOperationTestShouldParseParam(boolean shouldParse, boolean fileHolderHoldsFile) {
-        var mockRequestEntity = mock(QueryRequestEntity.class);
-        when(mockRequestEntity.shouldParse())
-                .thenReturn(shouldParse);
+    @ValueSource(booleans = {true, false})
+    public void performOperationTestFileHolderHoldsFile(boolean fileHolderHoldsFile) {
+        var requestEntity = mock(QueryEntity.class);
+        var fileName = "fileName";
 
-        var mockEntitiesList = mock(List.class);
-        var mockPath = mock(Path.class);
-        when(fileHandlingService.resolveFilePath(any()))
-                .thenReturn(mockPath);
-        when(holder.getEntities(any()))
-                .thenReturn(mockEntitiesList);
+        when(requestEntity.getFileName())
+                .thenReturn(fileName);
+        when(requestEntity.shouldParse())
+                .thenReturn(false);
 
-        // heres question if try/catch for part of method test is ok
-        var mockProcessor = mock(BiFunction.class);
-        when(processorAssigner.assignProcessor(any()))
-                .thenReturn(mockProcessor);
-        when(mockProcessor.apply(any(), any()))
-                .thenReturn(mockEntitiesList);
+        when(holder.holdsFile(eq(fileName)))
+                .thenReturn(fileHolderHoldsFile);
 
-        var response = queryProcessingService.performOperation(mockRequestEntity);
+        if (fileHolderHoldsFile) {
+            var entitiesList = mock(List.class);
+            when(holder.getEntities(eq(fileName)))
+                    .thenReturn(entitiesList);
+            when(processorAssigner.assignProcessor(eq(requestEntity)))
+                    .thenReturn(mock(BiFunction.class));
 
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-        if (shouldParse) {
-            verifyNoInteractions(holder);
-            verify(fileHandlingService, times(1)).resolveFilePath(any());
-            verify(parser, times(1)).parseFile(any());
+            var response = queryProcessingService.performOperation(requestEntity);
+
+            assertTrue(response.getStatusCode().is2xxSuccessful());
+            verifyNoInteractions(parser, fileHandlingService);
+            verify(processorAssigner, times(1))
+                    .assignProcessor(requestEntity);
         } else {
-            verify(holder, times(1)).getEntities(any());
-            if (fileHolderHoldsFile) {
-                verifyNoInteractions(parser);
-                verifyNoInteractions(fileHandlingService);
-            } else {
-                verify(fileHandlingService, times(1)).resolveFilePath(any());
-                verify(parser, times(1)).parseFile(any());
-            }
-        }
+            var path = mock(Path.class);
+            when(fileHandlingService.resolveFilePath(eq(fileName)))
+                    .thenReturn(path);
+            when(holder.getEntities(eq(fileName)))
+                    .thenReturn(null);
 
-        verify(processorAssigner, times(1)).assignProcessor(any());
-        verify(mockProcessor, times(1)).apply(any(), any());
-        assertEquals(mockEntitiesList, response.getBody());
+            var response = queryProcessingService.performOperation(requestEntity);
+            assertTrue(response.getStatusCode().is4xxClientError());
+            assertEquals("No data in local cache!",
+                    response.getBody());
+        }
+        verify(holder, times(1)).getEntities(eq(fileName));
     }
 
 }

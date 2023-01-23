@@ -2,7 +2,8 @@ package com.illia.client.service.processor.unit;
 
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.IMDbMovieHolder;
-import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.model.request.entity.DeleteQueryEntity;
+import com.illia.client.model.request.entity.QueryEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,18 +27,11 @@ public class DeleteOperationProcessorUnit implements OperationProcessor {
      */
 
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryRequestEntity requestEntity){
-        var attribute = requestEntity.getAttribute();
-        var value = requestEntity.getValueForDeleteOperation();
+    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryEntity queryEntity){
+        var attribute = ((DeleteQueryEntity) queryEntity).getAttribute().getAttributeValue();
 
-        Predicate<IMDbMovieEntity> filterPredicate;
-        if (value != null) {
-            filterPredicate = x -> !value.equals(x.getFieldAccessor(attribute));
-        } else {
-            filterPredicate = x -> !(x.getFieldAccessor(attribute) == null);
-        }
         var result = records.stream()
-                .filter(filterPredicate)
+                .filter(x -> !((DeleteQueryEntity) queryEntity).getValue().equals(x.getFieldAccessor(attribute)))
                 .collect(Collectors.toList());
         log.info("Input :{} entities, Output :{} entities, deleted :{}", records.size(), result.size(), records.size() - result.size());
         holder.applyChanges(result);

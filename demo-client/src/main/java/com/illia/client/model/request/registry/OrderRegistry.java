@@ -11,13 +11,17 @@ public enum OrderRegistry {
         this.order = order;
     }
 
-    public boolean getOrderValue() {
-        return Boolean.parseBoolean(order);
+    public String getOrderValue() {
+        return order;
     }
 
     public static OrderRegistry getOrderValue(String order){
         if(order != null){
-            return OrderRegistry.valueOf(order);
+            try {
+                return OrderRegistry.valueOf(order);
+            }catch (IllegalArgumentException ex){
+                return null;
+            }
         }
         return null;
     }

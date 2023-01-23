@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -48,33 +47,45 @@ public class IMDbMovieParser {
         Matcher matcher;
         if ((matcher = rowPattern.matcher(row)).find()) {
             return tryBuild(matcher);
-        } else{
+        } else {
             return null;
         }
     }
 
-    private IMDbMovieEntity tryBuild(Matcher matcher){
+    private IMDbMovieEntity tryBuild(Matcher matcher) {
         return IMDbMovieEntity.builder()
-                .title(matcher.group(1))
-                .date(matcher.group(2))
-                .color(matcher.group(3))
-                .genre(matcher.group(4))
-                .language(matcher.group(5))
-                .country(matcher.group(6))
-                .rating(matcher.group(7))
-                .leadActor(matcher.group(8))
-                .directorName(matcher.group(9))
-                .leadActorFBLikes(matcher.group(10))
-                .castFBLikes(matcher.group(11))
-                .directorFBLikes(matcher.group(12))
-                .movieFBLikes(matcher.group(13))
-                .IMBdScore(matcher.group(14).replace(",", "."))
-                .totalReviews(matcher.group(15))
-                .duration(matcher.group(16))
-                .grossRevenue(matcher.group(17))
-                .budget(matcher.group(18))
+                .title(fixNullStrings(matcher.group(1)))
+                .date(fixNullStrings(matcher.group(2)))
+                .color(fixNullStrings(matcher.group(3)))
+                .genre(fixNullStrings(matcher.group(4)))
+                .language(fixNullStrings(matcher.group(5)))
+                .country(fixNullStrings(matcher.group(6)))
+                .rating(fixNullStrings(matcher.group(7)))
+                .leadActor(fixNullStrings(matcher.group(8)))
+                .directorName(fixNullStrings(matcher.group(9)))
+                .leadActorFBLikes(fixNullIntegers(matcher.group(10)))
+                .castFBLikes(fixNullIntegers(matcher.group(11)))
+                .directorFBLikes(fixNullIntegers(matcher.group(12)))
+                .movieFBLikes(fixNullIntegers(matcher.group(13)))
+                .IMBdScore(fixNullDecimals(matcher.group(14).replace(",", ".")))
+                .totalReviews(fixNullIntegers(matcher.group(15)))
+                .duration(fixNullIntegers(matcher.group(16)))
+                .grossRevenue(fixNullIntegers(matcher.group(17)))
+                .budget(fixNullIntegers(matcher.group(18)))
                 .build();
 
+    }
+
+    private String fixNullStrings(String s) {
+        return s == null ? "" : s;
+    }
+
+    private String fixNullIntegers(String s){
+        return s == null ? "0" : s;
+    }
+
+    private String fixNullDecimals(String s){
+        return s == null ? ".0" : s;
     }
 
 }
