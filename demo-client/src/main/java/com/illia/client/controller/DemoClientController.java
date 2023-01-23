@@ -1,7 +1,7 @@
 package com.illia.client.controller;
 
-import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.request.QueryRequestEntity;
+import com.illia.client.model.request.creator.RequestParams;
+import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.service.FileTransferService;
 import com.illia.client.service.QueryProcessingService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -45,10 +41,14 @@ public class DemoClientController {
     }
 
     @GetMapping(value = "/query", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> performOperation(@RequestBody QueryRequestEntity entity) {
-        var response = queryProcessingService.performOperation(entity);
+    public ResponseEntity<Object> performOperation(@RequestBody RequestParams requestParams) {
+        var queryEntity = requestParams.createQueryEntity();
+        if(queryEntity instanceof String){
+            return ResponseEntity.badRequest().body(queryEntity);
+        }
+        var proceed = queryProcessingService.performOperation((QueryEntity)queryEntity);
         // still unsure where to form ResponseEntities, have questions about it
-        return response;
+        return proceed;
     }
 
 }
