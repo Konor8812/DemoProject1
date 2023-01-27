@@ -1,10 +1,10 @@
-package com.illia.client.service.processor;
+package com.illia.client.service.query.processor;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.request.creator.RequestParams;
+
 import com.illia.client.model.request.entity.QueryEntity;
-import com.illia.client.service.processor.unit.DeleteOperationProcessorUnit;
-import com.illia.client.service.processor.unit.SortOperationProcessorUnit;
+import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
+import com.illia.client.service.query.processor.unit.SortOperationProcessorUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

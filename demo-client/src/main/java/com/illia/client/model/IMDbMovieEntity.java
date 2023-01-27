@@ -1,6 +1,7 @@
 package com.illia.client.model;
 
 
+import com.illia.client.model.request.registry.AttributeRegistry;
 import lombok.Builder;
 import lombok.Data;
 
@@ -27,41 +28,43 @@ public class IMDbMovieEntity {
     private String grossRevenue;
     private String budget;
 
-    public String getFieldAccessor(String field){
-        switch (field){
-            case "title":
+    public String getFieldAccessor(AttributeRegistry attribute){
+        switch (attribute){
+            case TITLE:
                 return getTitle();
-            case "date":
+            case DATE:
                 return getDate();
-            case "color":
+            case COLOR:
                 return getColor();
-            case "genre":
+            case GENRE:
                 return getGenre();
-            case "language":
+            case LANGUAGE:
                 return getLanguage();
-            case "country":
+            case COUNTRY:
                 return getCountry();
-            case "rating":
+            case RATING:
                 return getRating();
-            case "leadActor":
+            case LEAD_ACTOR:
                 return getLeadActor();
-            case "directorName":
+            case DIRECTOR_NAME:
                 return getDirectorName();
-            case "leadActorFBLikes":
+            case LEAD_ACTOR_FB_LIKES:
                 return getLeadActorFBLikes();
-            case "castFBLikes":
+            case CAST_FB_LIKES:
                 return getCastFBLikes();
-            case "directorFBLikes":
+            case DIRECTOR_FB_LIKES:
                 return getDirectorFBLikes();
-            case "movieFBLikes":
+            case MOVIE_FB_LIKES:
                 return getMovieFBLikes();
-            case "IMBdScore":
+            case IMDB_SCORE:
                 return getIMBdScore();
-            case "duration":
+            case TOTAL_REVIEWS:
+                return getTotalReviews();
+            case DURATION:
                 return getDuration();
-            case "grossRevenue":
+            case GROSS_REVENUE:
                 return getGrossRevenue();
-            case "budget":
+            case BUDGET:
                 return getBudget();
 
             default : return null;

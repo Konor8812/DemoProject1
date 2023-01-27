@@ -1,10 +1,29 @@
 package com.illia.client.model.request.entity;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.illia.client.model.request.registry.OperationsRegistry;
+import lombok.Data;
 
-public interface QueryEntity {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
+        property = "operation")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = SortQueryEntity.class, name = "SORT"),
+        @JsonSubTypes.Type(value = DeleteQueryEntity.class, name = "DELETE")
+})
+@Data
+public abstract class QueryEntity {
+    private String fileName;
+    private boolean shouldParse;
 
-    public String getFileName();
-    public boolean shouldParse();
-    public OperationsRegistry getOperation();
+    public String getFileName(){
+        return fileName;
+    }
+
+    public boolean shouldParse(){
+        return shouldParse;
+    }
+
+    abstract public OperationsRegistry getOperation();
+
 }

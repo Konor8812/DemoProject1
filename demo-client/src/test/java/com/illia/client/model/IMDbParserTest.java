@@ -1,5 +1,7 @@
 package com.illia.client.model;
 
+import com.illia.client.model.holder.IMDbMovieHolderImpl;
+import com.illia.client.model.parser.IMDbMovieParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

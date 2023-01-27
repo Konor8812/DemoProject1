@@ -1,10 +1,12 @@
 package com.illia.client.service.processor.unit;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.IMDbMovieHolderImpl;
+import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.request.entity.SortQueryEntity;
 import com.illia.client.model.request.registry.AttributeRegistry;
 import com.illia.client.model.request.registry.OrderRegistry;
+import com.illia.client.service.query.processor.unit.SortOperationProcessorUnit;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +28,23 @@ public class SortOperationProcessorUnitTest {
     @MockBean
     IMDbMovieHolderImpl holder;
 
-    @ParameterizedTest
-    @ValueSource(longs = {1, 3, 10})
-    public void testSortShouldApplyLimitWithoutModifications(long limit) {
-        var queryRequestEntity = buildRequestEntity("TITLE", "ASC", limit);
+    @Test
+    public void testSortShouldReturnAll() {
+        var queryRequestEntity = buildRequestEntity("TITLE", "ASC", Long.MAX_VALUE);
         var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
         var response = sortOperationProcessorUnit.proceed(givenEntities, queryRequestEntity);
         verify(holder, times(1)).applyChanges(response);
-        assertTrue(response.size() <= limit);
+        assertEquals(givenEntities.size(), response.size());
     }
 
+    @Test
+    public void testSortShouldReturnLimitSize() {
+        var queryRequestEntity = buildRequestEntity("TITLE", "ASC", 1);
+        var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
+        var response = sortOperationProcessorUnit.proceed(givenEntities, queryRequestEntity);
+        verify(holder, times(1)).applyChanges(response);
+        assertEquals(1, response.size());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"ASC", "DESC"})

@@ -43,14 +43,13 @@ public class DemoClientController {
     }
 
     @GetMapping(value = "/query", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> performOperation(@RequestBody RequestParams requestParams) {
-        var queryEntity = requestParams.createQueryEntity();
-        if(queryEntity instanceof String){
-            return ResponseEntity.badRequest().body(queryEntity);
-        }
-        var proceed = queryProcessingService.performOperation((QueryEntity)queryEntity);
-        // still unsure where to form ResponseEntities, have questions about it
-        return proceed;
+    public ResponseEntity<Object> performOperation(@RequestBody QueryEntity queryEntity) throws QueryProcessingException {
+        return ResponseEntity.ok().body(queryProcessingService.performOperation(queryEntity));
+    }
+
+    @ExceptionHandler(value = {QueryProcessingException.class})
+    public ResponseEntity<String> handleQueryProcessingException(Exception ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(value = {FileHandlingException.class})

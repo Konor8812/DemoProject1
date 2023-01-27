@@ -2,8 +2,9 @@ package com.illia.client.service.processor;
 
 import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.model.request.registry.OperationsRegistry;
-import com.illia.client.service.processor.unit.DeleteOperationProcessorUnit;
-import com.illia.client.service.processor.unit.SortOperationProcessorUnit;
+import com.illia.client.service.query.processor.ProcessorAssigner;
+import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
+import com.illia.client.service.query.processor.unit.SortOperationProcessorUnit;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class ProcessorAssignerTest {
     public void testOperationAssigment(String operation){
         var queryEntity = mock(QueryEntity.class);
         when(queryEntity.getOperation())
-                .thenReturn(OperationsRegistry.getOperation(operation));
+                .thenReturn(OperationsRegistry.valueOf(operation));
         assertNotNull(processorAssigner.assignProcessor(queryEntity));
     }
 

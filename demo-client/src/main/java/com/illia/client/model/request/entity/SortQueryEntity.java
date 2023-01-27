@@ -5,10 +5,12 @@ import com.illia.client.model.request.registry.OperationsRegistry;
 import com.illia.client.model.request.registry.OrderRegistry;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
-public class SortQueryEntity implements QueryEntity {
+public class SortQueryEntity extends QueryEntity {
     private String fileName;
     private boolean shouldParse;
 

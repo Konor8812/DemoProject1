@@ -1,5 +1,7 @@
-package com.illia.client.model;
+package com.illia.client.model.holder;
 
+
+import com.illia.client.model.IMDbMovieEntity;
 
 import java.util.List;
 

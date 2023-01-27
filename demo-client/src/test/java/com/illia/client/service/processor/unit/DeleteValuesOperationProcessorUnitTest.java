@@ -1,9 +1,10 @@
 package com.illia.client.service.processor.unit;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.IMDbMovieHolderImpl;
+import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.request.entity.DeleteQueryEntity;
 import com.illia.client.model.request.registry.AttributeRegistry;
+import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;

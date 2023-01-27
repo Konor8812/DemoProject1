@@ -1,13 +1,12 @@
-package com.illia.client.service;
+package com.illia.client.service.query;
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.IMDbMovieHolderImpl;
-import com.illia.client.model.IMDbMovieParser;
-import com.illia.client.model.request.creator.RequestParams;
+import com.illia.client.model.holder.IMDbMovieHolderImpl;
+import com.illia.client.model.parser.IMDbMovieParser;
 import com.illia.client.model.request.entity.QueryEntity;
-import com.illia.client.service.processor.ProcessorAssigner;
+import com.illia.client.service.file.FileHandlingService;
+import com.illia.client.service.query.processor.ProcessorAssigner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,25 +23,21 @@ public class QueryProcessingService {
     @Autowired
     private IMDbMovieHolderImpl holder;
 
-    public ResponseEntity<Object> performOperation(QueryEntity queryEntity) {
+    public List<IMDbMovieEntity> performOperation(QueryEntity queryEntity) throws QueryProcessingException {
         var fileName = queryEntity.getFileName();
 
         List<IMDbMovieEntity> records = null;
         if (queryEntity.shouldParse()) {
-            if((records = requestParseFile(fileName)) == null){
-                return ResponseEntity.badRequest().body("No such file!");
+            if ((records = requestParseFile(fileName)) == null) {
+                throw new QueryProcessingException("No such file!");
             }
-        }else {
+        } else {
             if ((records = holder.getEntities(fileName)) == null) {
-                return ResponseEntity.badRequest().body("No data in local cache!");
+                throw new QueryProcessingException("No data in local cache!");
             }
         }
-
-        return ResponseEntity.ok()
-                .body(
-                        processorAssigner.assignProcessor(queryEntity)
-                                .apply(records, queryEntity)
-                );
+        return processorAssigner.assignProcessor(queryEntity)
+                        .apply(records, queryEntity);
     }
 
     private List<IMDbMovieEntity> requestParseFile(String fileName) {
@@ -52,6 +47,5 @@ public class QueryProcessingService {
         }
         return null;
     }
-
 
 }

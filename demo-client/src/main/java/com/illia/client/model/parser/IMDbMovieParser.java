@@ -1,5 +1,7 @@
-package com.illia.client.model;
+package com.illia.client.model.parser;
 
+import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,10 +1,12 @@
-package com.illia.client.service.processor.unit;
+package com.illia.client.service.query.processor.unit;
 
 
 import com.illia.client.model.IMDbMovieEntity;
-import com.illia.client.model.IMDbMovieHolder;
+import com.illia.client.model.holder.IMDbMovieHolder;
 import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.model.request.entity.SortQueryEntity;
+import com.illia.client.model.request.registry.AttributeRegistry;
+import com.illia.client.model.request.registry.OrderRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,8 +30,8 @@ public class SortOperationProcessorUnit implements OperationProcessor {
 
     @Override
     public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryEntity queryEntity){
-        var attribute = ((SortQueryEntity) queryEntity).getAttribute().getAttributeValue();
-        boolean shouldOrderAsc = ((SortQueryEntity) queryEntity).getOrder().getOrderValue().equals("ASC");
+        var attribute = ((SortQueryEntity) queryEntity).getAttribute();
+        boolean shouldOrderAsc = ((SortQueryEntity) queryEntity).getOrder().equals(OrderRegistry.ASC);
 
         var comparator = getComparator(attribute, shouldOrderAsc);
         var result = records.stream()
@@ -47,23 +49,23 @@ public class SortOperationProcessorUnit implements OperationProcessor {
     }
 
 
-    private Comparator<Object> getComparator(String attribute, boolean shouldGetMax) {
+    private Comparator<Object> getComparator(AttributeRegistry attribute, boolean shouldGetMax) {
         switch (attribute) {
-            case "IMBdScore":
-                return getDoubleComparator(shouldGetMax);
-
-            case "date":
+            case DATE:
                 return getDateComparator(shouldGetMax);
 
-            case "leadActorFBLikes":
-            case "castFBLikes":
-            case "directorFBLikes":
-            case "movieFBLikes":
-            case "totalReviews":
-            case "duration":
-            case "grossRevenue":
-            case "budget":
+            case LEAD_ACTOR_FB_LIKES:
+            case CAST_FB_LIKES:
+            case DIRECTOR_FB_LIKES:
+            case MOVIE_FB_LIKES:
+            case TOTAL_REVIEWS:
+            case DURATION:
+            case GROSS_REVENUE:
+            case BUDGET:
                 return getLongComparator(shouldGetMax);
+
+            case IMDB_SCORE:
+                return getDoubleComparator(shouldGetMax);
 
             default:
                 return getStringComparator(shouldGetMax);
@@ -105,7 +107,6 @@ public class SortOperationProcessorUnit implements OperationProcessor {
             } else if (stringValue2.isEmpty()) {
                 return 1;
             }
-
             try {
                 var dateValue1 = dateFormat.parse(stringValue1);
                 var dateValue2 = dateFormat.parse(stringValue2);
