@@ -1,4 +1,4 @@
-package com.illia.client.service;
+package com.illia.client.service.file;
 
 import com.illia.client.http.MyHttpClient;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +21,9 @@ public class FileTransferService {
     @Autowired
     private FileHandlingService fileHandlingService;
 
-
-    public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile, boolean overwrite) {
-        if (multipartFile == null) {
-            return ResponseEntity.badRequest().body("No file attached!");
-        }
+    // this receives ResponseEntity from restTemplate.postForEntity
+    // it sounds reasonable to just return without modifications
+    public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile, boolean overwrite) throws FileHandlingException {
         try {
             var bytes = fileHandlingService.resolveMultipartFile(multipartFile);
 
@@ -33,23 +31,22 @@ public class FileTransferService {
         } catch (IOException e) {
             var errorMsg = "Inner error while file resolving!";
             log.error(errorMsg, e);
-            return ResponseEntity.internalServerError().body(errorMsg);
+            throw new FileHandlingError("Internal error while saving file!");
         } catch (HttpClientErrorException ex) {
             var statusCode = ex.getStatusCode();
             var serverResponse = ex.getResponseBodyAsString();
             if (statusCode.is4xxClientError()) {
-                return ResponseEntity.badRequest().body(serverResponse);
+                throw new FileHandlingException(serverResponse);
             } else {
-                return ResponseEntity.internalServerError().body(serverResponse);
+                throw new FileHandlingError(serverResponse);
             }
         }
     }
 
-    public ResponseEntity<String> downloadFile(String fileName, boolean overwrite) {
+    public String downloadFile(String fileName, boolean overwrite) throws FileHandlingException {
         if (!overwrite) {
             if(fileHandlingService.exists(fileName)) {
-                return ResponseEntity.badRequest().body("File with such name exists! " +
-                        "Consider adding &overwrite=true to url to overwrite existing file");
+                throw new FileHandlingException("File with such name exists!");
             }
         }
 
@@ -58,38 +55,37 @@ public class FileTransferService {
             var content = resp.getBody();
             var saved = fileHandlingService.saveFile(fileName, content, true);
             if(saved) {
-                return ResponseEntity.ok().body(String.format("File %s saved successfully", fileName));
+                return String.format("File %s saved successfully", fileName);
+            }else {
+                throw new FileHandlingError("Internal error while saving file!");
             }
-
-            return ResponseEntity.internalServerError().body("Internal server error while saving file!");
 
         } catch (HttpClientErrorException ex) {
             var statusCode = ex.getStatusCode();
             var serverResponse = ex.getResponseBodyAsString();
             if (statusCode.is4xxClientError()) {
-                return ResponseEntity.badRequest().body(serverResponse);
+                return serverResponse;
             } else {
-                return ResponseEntity.internalServerError().body(serverResponse);
+                throw new FileHandlingError(serverResponse);
             }
         } catch (IOException e) {
             log.error("Error in save file", e);
-            return ResponseEntity.internalServerError().body("Inner error while trying to save file");
+            throw new FileHandlingError("Internal error while saving file!");
         }
-
     }
 
-    public ResponseEntity<String> deleteFile(String fileName) {
+    public String deleteFile(String fileName) {
         try {
             var deleted = fileHandlingService.deleteFile(fileName);
             if (deleted) {
-                return ResponseEntity.ok().body("Successfully deleted " + fileName);
+                return "Successfully deleted " + fileName;
             } else {
-                return ResponseEntity.badRequest().body("No such file");
+                throw new FileHandlingException("No such file");
             }
         } catch (Exception e) {
             var errorMsg = "Inner error while file deleting!";
             log.error(errorMsg, e);
-            return ResponseEntity.internalServerError().body(errorMsg);
+            throw new FileHandlingError(errorMsg);
         }
     }
 

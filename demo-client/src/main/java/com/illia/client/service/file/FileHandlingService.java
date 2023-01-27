@@ -1,4 +1,4 @@
-package com.illia.client.service;
+package com.illia.client.service.file;
 
 import com.illia.client.config.ClientConfig;
 import org.springframework.beans.factory.annotation.Autowired;

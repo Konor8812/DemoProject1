@@ -1,8 +1,8 @@
 package com.illia.client.service;
 
 import com.illia.client.config.ClientConfig;
-import com.illia.client.service.FileHandlingService;
-import com.illia.client.service.FileUtil;
+import com.illia.client.service.file.FileHandlingService;
+import com.illia.client.service.file.FileUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
