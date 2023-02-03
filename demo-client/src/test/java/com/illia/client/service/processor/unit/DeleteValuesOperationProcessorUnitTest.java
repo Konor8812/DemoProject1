@@ -39,7 +39,7 @@ public class DeleteValuesOperationProcessorUnitTest {
                 .attribute(AttributeRegistry.COLOR)
                 .value(value)
                 .build();
-        var result = deleteOperationProcessorUnit.proceed(given, queryRequestEntity);
+        var result = deleteOperationProcessorUnit.process(given, queryRequestEntity);
         assertEquals(given.size() - entitiesToDeleteAmount, result.size());
         result.forEach(x -> assertNotEquals(value, x.getColor()));
         verify(holder, times(1)).applyChanges(result);

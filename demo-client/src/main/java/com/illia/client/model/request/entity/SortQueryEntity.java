@@ -30,6 +30,6 @@ public class SortQueryEntity extends QueryEntity {
 
     @Override
     public OperationsRegistry getOperation() {
-        return OperationsRegistry.SORT;
+        return OperationsRegistry.valueOf("SORT");
     }
 }

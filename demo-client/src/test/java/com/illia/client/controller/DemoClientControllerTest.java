@@ -1,31 +1,38 @@
 package com.illia.client.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.illia.client.config.ObjectMapperConfig;
+import com.illia.client.model.request.entity.DeleteQueryEntity;
+import com.illia.client.model.request.entity.QueryEntity;
+import com.illia.client.model.request.registry.AttributeRegistry;
 import com.illia.client.service.file.FileHandlingException;
+import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.file.FileTransferService;
-
 import com.illia.client.service.query.QueryProcessingService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = DemoClientController.class)
+@SpringBootTest(classes = {DemoClientController.class})
 class DemoClientControllerTest {
 
     @Autowired
@@ -34,7 +41,10 @@ class DemoClientControllerTest {
     @MockBean
     FileTransferService fileTransferService;
     @MockBean
+    FileHandlingService fileHandlingService;
+    @MockBean
     QueryProcessingService queryProcessingService;
+
 
     @Test
     public void uploadValidFileShouldBeOk() throws Exception {
@@ -90,7 +100,6 @@ class DemoClientControllerTest {
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof FileHandlingException))
                 .andExpect(result -> assertEquals(errorMsg, result.getResolvedException().getMessage()));
         verify(fileTransferService, times(1)).downloadFile("fileName", false);
-
     }
 }
 

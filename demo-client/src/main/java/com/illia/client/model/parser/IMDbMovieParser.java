@@ -2,6 +2,8 @@ package com.illia.client.model.parser;
 
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
+import com.illia.client.service.file.FileHandlingError;
+import com.illia.client.service.file.FileHandlingException;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,11 +11,15 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Data
@@ -27,22 +33,23 @@ public class IMDbMovieParser {
      */
     private static Pattern rowPattern = Pattern.compile("^([^;]+);(\\d+/\\d+/\\d+);(Color|Black and White)?;([a-zA-Z-]+)?;([a-zA-Z]+)?;([a-zA-Z ]+)?;([a-zA-Z0-9- ]+)?;([^;]+)?;([^;]+)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+,?\\d*)?;(\\d+)?;(\\d+)?;(\\d+)?;(\\d+)?");
 
-
-    public List<IMDbMovieEntity> parseFile(File file) {
-
-        if (file.canRead()) {
-            try (var linesStream = new BufferedReader(new FileReader(file)).lines()) {
-                var reports = linesStream.skip(1)
+    public List<IMDbMovieEntity> parseFile(Path path) throws FileHandlingException {
+        try {
+            var lines =  Files.readAllLines(path);
+            if(lines.stream()
+                    .skip(1)
+                    .allMatch(x -> rowPattern.matcher(x).find())){
+                var reports = lines.stream().skip(1)
                         .map(this::parseRow)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
-                reportsHolder.saveEntities(file.getName(), reports);
+                reportsHolder.saveEntities(String.valueOf(path.getFileName()), reports);
                 return reports;
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            throw new FileHandlingError("Server error while reading file!");
         }
-        return List.of();
+        throw new FileHandlingException("File isn't readable!");
     }
 
     private IMDbMovieEntity parseRow(String row) {
@@ -75,18 +82,17 @@ public class IMDbMovieParser {
                 .grossRevenue(fixNullIntegers(matcher.group(17)))
                 .budget(fixNullIntegers(matcher.group(18)))
                 .build();
-
     }
 
     private String fixNullStrings(String s) {
         return s == null ? "" : s;
     }
 
-    private String fixNullIntegers(String s){
+    private String fixNullIntegers(String s) {
         return s == null ? "0" : s;
     }
 
-    private String fixNullDecimals(String s){
+    private String fixNullDecimals(String s) {
         return s == null ? ".0" : s;
     }
 

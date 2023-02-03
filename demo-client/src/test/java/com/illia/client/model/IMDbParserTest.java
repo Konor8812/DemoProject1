@@ -2,6 +2,7 @@ package com.illia.client.model;
 
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.parser.IMDbMovieParser;
+import com.illia.client.service.file.FileHandlingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,9 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = {IMDbMovieParser.class})
 public class IMDbParserTest {
@@ -26,17 +27,25 @@ public class IMDbParserTest {
     IMDbMovieHolderImpl holder;
 
     @Test
-    public void parseFileTestEntitiesAmount() throws URISyntaxException, IOException {
-        var fileName = "provided.csv";
-        var uri = ClassLoader.getSystemResource(fileName).toURI();
-        var filePath = Path.of(uri);
+    public void parseValidFileShouldBeOkAndCallHolderSaveEntities() throws URISyntaxException, IOException, FileHandlingException {
+        var fileName = "validFile.csv";
+        var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
 
-        var linesAmount = Files.readAllLines(filePath).size();
-        var expectedEntitiesAmount = linesAmount - 1; // 1st row isn't entity
-
-        var parseResult = parser.parseFile(filePath.toFile());
+        var parseResult = parser.parseFile(filePath);
 
         verify(holder, times(1)).saveEntities(eq(fileName), eq(parseResult));
-        assertEquals(expectedEntitiesAmount, parseResult.size());
+        assertEquals(Files.readAllLines(filePath).size() - 1, parseResult.size());
+    }
+
+    @Test
+    public void parseUnreadableFileShouldThrowFileHandlingException() throws URISyntaxException {
+        var fileName = "unparseable-file.csv";
+        var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
+
+        var parseResult = assertThrowsExactly(FileHandlingException.class,
+                () -> parser.parseFile(filePath));
+
+        verify(holder, never()).saveEntities(any(), any());
+        assertEquals("File isn't readable!", parseResult.getMessage());
     }
 }

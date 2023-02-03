@@ -3,6 +3,7 @@ package com.illia.client.service;
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.parser.IMDbMovieParser;
 import com.illia.client.model.request.entity.QueryEntity;
+import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.query.QueryProcessingException;
 import com.illia.client.service.query.processor.ProcessorAssigner;
@@ -40,32 +41,45 @@ public class QueryProcessingServiceTest {
     IMDbMovieHolderImpl holder;
 
     @Test
-    public void performOperationTestShouldParseShouldThrowException() {
+    public void performOperationShouldSolveFileHandlingExceptionAndThrowQueryProcessingException() throws FileHandlingException {
         var requestEntity = mock(QueryEntity.class);
-        var fileName = "fileName";
-
-        when(requestEntity.getFileName())
-                .thenReturn(fileName);
+        var exceptionMsg=  "exceptionMsg";
         when(requestEntity.shouldParse())
                 .thenReturn(true);
-        when(fileHandlingService.resolveFilePath(fileName))
-                .thenReturn(null);
+        when(fileHandlingService.resolveFilePath(any()))
+                .thenThrow(new FileHandlingException(exceptionMsg));
 
         var response = assertThrowsExactly(QueryProcessingException.class, () -> {
             queryProcessingService.performOperation(requestEntity);
         });
 
-        assertEquals("No such file!",
+        assertEquals(exceptionMsg, response.getMessage());
+
+        verifyNoInteractions(parser, holder, processorAssigner);
+    }
+
+    @Test
+    public void performOperationEmptyHolderTestShouldThrowException() {
+        var requestEntity = mock(QueryEntity.class);
+
+        when(requestEntity.shouldParse())
+                .thenReturn(false);
+        when(holder.getEntities(any()))
+                .thenReturn(null);
+
+        var response = assertThrowsExactly(QueryProcessingException.class, () -> {
+            queryProcessingService.performOperation(requestEntity);
+        });
+        assertEquals("Local cache is empty!",
                 response.getMessage());
 
-        verify(fileHandlingService, times(1)).resolveFilePath(eq(fileName));
-        verifyNoInteractions(parser, holder, processorAssigner);
-
+        verify(holder, times(1)).getEntities(any());
+        verifyNoInteractions(parser, fileHandlingService, processorAssigner);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void performOperationTestShouldParseShouldBeOk() throws QueryProcessingException {
+    public void performOperationTestShouldCallParserAndProceed() throws QueryProcessingException, FileHandlingException {
         var requestEntity = mock(QueryEntity.class);
         var fileName = "fileName";
 
@@ -77,42 +91,18 @@ public class QueryProcessingServiceTest {
                 .thenReturn(mock(Path.class));
         when(processorAssigner.assignProcessor(any()))
                 .thenReturn(mock(BiFunction.class));
+
         queryProcessingService.performOperation(requestEntity);
 
         verify(fileHandlingService, times(1)).resolveFilePath(eq(fileName));
         verify(parser, times(1)).parseFile(any());
         verify(processorAssigner, times(1)).assignProcessor(any());
         verifyNoInteractions(holder);
-
-    }
-
-    @Test
-    public void performOperationTestHoldsFileShouldThrowException() {
-        var requestEntity = mock(QueryEntity.class);
-        var fileName = "fileName";
-
-        when(requestEntity.getFileName())
-                .thenReturn(fileName);
-        when(requestEntity.shouldParse())
-                .thenReturn(false);
-
-        when(holder.getEntities(eq(fileName)))
-                .thenReturn(null);
-
-        var response = assertThrowsExactly(QueryProcessingException.class, () -> {
-            queryProcessingService.performOperation(requestEntity);
-        });
-
-        assertEquals("No data in local cache!",
-                response.getMessage());
-
-        verify(holder, times(1)).getEntities(eq(fileName));
-        verifyNoInteractions(parser, fileHandlingService, processorAssigner);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void performOperationTestHoldsFileShouldBeOk() throws QueryProcessingException {
+    public void performOperationTestHoldsFileShouldBeOk() throws QueryProcessingException{
         var requestEntity = mock(QueryEntity.class);
         var fileName = "fileName";
 

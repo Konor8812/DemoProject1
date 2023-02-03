@@ -3,6 +3,7 @@ package com.illia.client.service.query.processor;
 import com.illia.client.model.IMDbMovieEntity;
 
 import com.illia.client.model.request.entity.QueryEntity;
+import com.illia.client.service.query.QueryProcessingException;
 import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
 import com.illia.client.service.query.processor.unit.SortOperationProcessorUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +23,14 @@ public class ProcessorAssigner {
     @Autowired
     DeleteOperationProcessorUnit deleteOperationProcessorUnit;
 
-    public BiFunction<List<IMDbMovieEntity>, QueryEntity, List<IMDbMovieEntity>> assignProcessor(QueryEntity queryEntity) {
+    public BiFunction<List<IMDbMovieEntity>, QueryEntity, List<IMDbMovieEntity>> assignProcessor(QueryEntity queryEntity) throws QueryProcessingException {
         switch (queryEntity.getOperation()) {
             case SORT:
-                return sortOperationProcessorUnit::proceed;
+                return sortOperationProcessorUnit::process;
             case DELETE:
-                return deleteOperationProcessorUnit::proceed;
+                return deleteOperationProcessorUnit::process;
             default:
-                return null;
+                throw new QueryProcessingException("This operation cannot be performed!");
         }
     }
 }

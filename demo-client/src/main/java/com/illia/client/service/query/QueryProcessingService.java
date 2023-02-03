@@ -4,6 +4,7 @@ import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.parser.IMDbMovieParser;
 import com.illia.client.model.request.entity.QueryEntity;
+import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.query.processor.ProcessorAssigner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,24 +29,22 @@ public class QueryProcessingService {
 
         List<IMDbMovieEntity> records = null;
         if (queryEntity.shouldParse()) {
-            if ((records = requestParseFile(fileName)) == null) {
-                throw new QueryProcessingException("No such file!");
+            try{
+                records = requestParseFile(fileName);
+            }catch (FileHandlingException ex){
+                throw new QueryProcessingException(ex.getMessage());
             }
         } else {
             if ((records = holder.getEntities(fileName)) == null) {
-                throw new QueryProcessingException("No data in local cache!");
+                throw new QueryProcessingException("Local cache is empty!");
             }
         }
         return processorAssigner.assignProcessor(queryEntity)
                         .apply(records, queryEntity);
     }
 
-    private List<IMDbMovieEntity> requestParseFile(String fileName) {
-        var path = fileHandlingService.resolveFilePath(fileName);
-        if (path != null) {
-            return parser.parseFile(path.toFile());
-        }
-        return null;
+    private List<IMDbMovieEntity> requestParseFile(String fileName) throws FileHandlingException {
+        return parser.parseFile(fileHandlingService.resolveFilePath(fileName));
     }
 
 }

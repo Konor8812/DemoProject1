@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface OperationProcessor {
 
-    List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryEntity queryEntity);
+    List<IMDbMovieEntity> process(List<IMDbMovieEntity> records, QueryEntity queryEntity);
 
 }

@@ -29,7 +29,7 @@ public class SortOperationProcessorUnit implements OperationProcessor {
      */
 
     @Override
-    public List<IMDbMovieEntity> proceed(List<IMDbMovieEntity> records, QueryEntity queryEntity){
+    public List<IMDbMovieEntity> process(List<IMDbMovieEntity> records, QueryEntity queryEntity){
         var attribute = ((SortQueryEntity) queryEntity).getAttribute();
         boolean shouldOrderAsc = ((SortQueryEntity) queryEntity).getOrder().equals(OrderRegistry.ASC);
 

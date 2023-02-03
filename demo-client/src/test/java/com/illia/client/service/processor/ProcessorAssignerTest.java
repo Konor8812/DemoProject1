@@ -2,6 +2,7 @@ package com.illia.client.service.processor;
 
 import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.model.request.registry.OperationsRegistry;
+import com.illia.client.service.query.QueryProcessingException;
 import com.illia.client.service.query.processor.ProcessorAssigner;
 import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
 import com.illia.client.service.query.processor.unit.SortOperationProcessorUnit;
@@ -28,7 +29,7 @@ public class ProcessorAssignerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"DELETE", "SORT"})
-    public void testOperationAssigment(String operation){
+    public void testOperationAssigment(String operation) throws QueryProcessingException {
         var queryEntity = mock(QueryEntity.class);
         when(queryEntity.getOperation())
                 .thenReturn(OperationsRegistry.valueOf(operation));
