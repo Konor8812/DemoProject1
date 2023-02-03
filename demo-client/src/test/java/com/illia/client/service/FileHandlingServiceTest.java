@@ -1,22 +1,25 @@
 package com.illia.client.service;
 
 import com.illia.client.config.ClientConfig;
+import com.illia.client.service.file.FileHandlingError;
+import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
-import com.illia.client.service.file.FileUtil;
+import com.illia.client.service.file.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = {FileUtil.class, FileHandlingService.class, ClientConfig.class})
+@SpringBootTest(classes = {FileUtils.class, FileHandlingService.class, ClientConfig.class})
 public class FileHandlingServiceTest {
 
     @Autowired
@@ -25,18 +28,18 @@ public class FileHandlingServiceTest {
     ClientConfig clientConfig;
 
     @MockBean
-    FileUtil fileUtil;
+    FileUtils fileUtils;
 
     @Test
-    public void resolveMultipartFileShouldCallFileHandlingService() throws IOException {
+    public void resolveMultipartFileShouldCallFileUtils() {
         var mockMultipartFile = mock(MultipartFile.class);
         fileHandlingService.resolveMultipartFile(mockMultipartFile);
-        verify(fileUtil, times(1)).resolveMultipartFile(mockMultipartFile);
+        verify(fileUtils, times(1)).resolveMultipartFile(mockMultipartFile);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void saveFileTestShouldCallFileHandlingService(boolean overwriteFlag) throws IOException {
+    public void saveFileTestShouldCallFileUtilsMethod(boolean overwriteFlag){
         var fileName = "fileName";
         var content = new byte[]{};
         when(clientConfig.getDownloadedFilesDirectoryPrefix())
@@ -45,26 +48,57 @@ public class FileHandlingServiceTest {
 
         fileHandlingService.saveFile(fileName, content, overwriteFlag);
         if (overwriteFlag) {
-            verify(fileUtil, times(1)).deleteFileIfExists(expectedPath);
+            verify(fileUtils, times(1)).deleteFileIfExists(expectedPath);
         }
-        verify(fileUtil, times(1)).saveFile(expectedPath, content);
+        verify(fileUtils, times(1)).saveFile(expectedPath, content);
     }
 
+
     @Test
-    public void deleteExistingFileShouldCallFileHandlingServiceDeleteFileMethod() throws IOException {
-        when(fileUtil.exists(notNull()))
+    public void resolvePathTestShouldReturnNotNull() throws FileHandlingException {
+        when(fileUtils.exists(notNull()))
                 .thenReturn(true);
-        fileHandlingService.deleteFile("fileName");
-        verify(fileUtil, times(1)).exists(notNull());
-        verify(fileUtil, times(1)).deleteFileIfExists(notNull());
+        assertNotNull(fileHandlingService.resolveFilePath(""));
+        verify(fileUtils, times(1)).exists(any());
     }
 
     @Test
-    public void deleteNonExistingFileShouldNotCallFileHandlingServiceDeleteFileMethod() throws IOException {
-        when(fileUtil.exists(any()))
+    public void resolveFilePathTestShouldThrowFileHandlingException() {
+        var fileName = "fileName";
+        when(fileUtils.exists(notNull()))
                 .thenReturn(false);
-        fileHandlingService.deleteFile("fileName");
-        verify(fileUtil, times(1)).exists(any());
-        verify(fileUtil, never()).deleteFileIfExists(notNull());
+        var res = assertThrowsExactly(FileHandlingException.class,
+                () -> fileHandlingService.resolveFilePath(fileName));
+        verify(fileUtils, times(1)).exists(any());
+        assertEquals(String.format("File '%s' isn't found", fileName), res.getMessage());
+    }
+
+    @Test
+    public void existsTestShouldReturnFalse() {
+        when(fileUtils.exists(any()))
+                .thenReturn(false);
+        assertFalse(fileHandlingService.exists(null));
+    }
+
+
+    @Test
+    public void deleteExistingFileShouldCallFileHandlingServiceDeleteFileMethod() throws FileHandlingException {
+        when(fileUtils.exists(any()))
+                .thenReturn(true);
+        fileHandlingService.deleteFile("");
+        verify(fileUtils, times(1))
+                .deleteFileIfExists(any());
+    }
+
+    @Test
+    public void deleteNonExistingFileShouldThrowFileHandlingException(){
+        var fileName = "fileName";
+        when(fileUtils.exists(any()))
+                .thenReturn(false);
+        var res = assertThrowsExactly(FileHandlingException.class,
+                () -> fileHandlingService.deleteFile(fileName));
+        verify(fileUtils, never())
+                .deleteFileIfExists(any());
+        assertEquals(String.format("File '%s' isn't found", fileName), res.getMessage());
     }
 }

@@ -1,7 +1,6 @@
 package com.illia.client.service;
 
 import com.illia.client.http.MyHttpClient;
-import com.illia.client.service.file.FileHandlingError;
 import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileTransferService;
 import com.illia.client.service.file.FileHandlingService;
@@ -9,13 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.multipart.MultipartFile;
 
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,97 +31,49 @@ public class FileTransferServiceTest {
     FileHandlingService fileHandlingService;
 
     @Test
-    public void uploadFileShouldResolveResourceAndCallClient() throws IOException, FileHandlingException {
+    public void uploadFileShouldResolveResourceAndCallClient() throws FileHandlingException {
         var fileName = "fileName";
-        when(client.performUploadFileRequest(eq(fileName), any(), anyBoolean()))
+        var mockMultipartFile = mock(MultipartFile.class);
+        var mockResource = mock(ByteArrayResource.class);
+
+        when(fileHandlingService.resolveMultipartFile(mockMultipartFile))
+                .thenReturn(mockResource);
+        when(client.performUploadFileRequest(eq(fileName), eq(mockResource), anyBoolean()))
                 .thenReturn(ResponseEntity.ok().build());
 
-        var response = fileTransferService.uploadFile(fileName, null, true);
+        assertTrue(fileTransferService.uploadFile(fileName, mockMultipartFile, true).getStatusCode().is2xxSuccessful());
 
+        verify(fileHandlingService, times(1))
+                .resolveMultipartFile(mockMultipartFile);
         verify(client, times(1))
-                .performUploadFileRequest(eq(fileName), any(), eq(true));
-        verify(fileHandlingService, times(1))
-                .resolveMultipartFile(any());
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-    }
-
-    @Test
-    public void uploadFileShouldThrowFileHandlingException() throws IOException {
-        var exceptionMsg = "File already exists";
-        when(client.performUploadFileRequest(any(), any(), anyBoolean()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", exceptionMsg.getBytes(), StandardCharsets.ISO_8859_1));
-
-        var resp = assertThrowsExactly(FileHandlingException.class,
-                () -> fileTransferService.uploadFile(null, null, false));
-
-        verify(fileHandlingService, times(1))
-                .resolveMultipartFile(any());
-        verify(client, times(1))
-                .performUploadFileRequest(any(), any(), anyBoolean());
-        assertEquals(exceptionMsg, resp.getMessage());
-    }
-
-    @Test
-    public void uploadFileShouldThrowFileHandlingError() throws IOException {
-        when(fileHandlingService.resolveMultipartFile(any()))
-                .thenThrow(new IOException());
-
-        var resp = assertThrowsExactly(FileHandlingError.class,
-                () -> fileTransferService.uploadFile(null, null, false));
-
-        verify(fileHandlingService, times(1))
-                .resolveMultipartFile(any());
-        assertEquals("Internal error while saving file!", resp.getMessage());
-        verifyNoInteractions(client);
+                .performUploadFileRequest(eq(fileName), eq(mockResource), eq(true));
     }
 
     @Test
     public void downloadExistingFileShouldThrowException() {
         when(fileHandlingService.exists(any()))
                 .thenReturn(true);
-        var resp = assertThrowsExactly(FileHandlingException.class, () -> fileTransferService.downloadFile(null, false));
+        var resp = assertThrowsExactly(FileHandlingException.class,
+                () -> fileTransferService.downloadFile(null, false));
         verify(fileHandlingService, times(1)).exists(any());
         verifyNoInteractions(client);
-        assertEquals("File with such name exists!", resp.getMessage());
+        assertEquals("File with such name already exists!", resp.getMessage());
     }
 
     @Test
-    public void downloadFileServerErrorShouldThrowError() {
-        var exceptionMsg = "server response message";
-        when(client.performDownloadFileRequest(any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "", exceptionMsg.getBytes(), StandardCharsets.ISO_8859_1));
-        var resp = assertThrowsExactly(FileHandlingError.class, () -> fileTransferService.downloadFile(null, true));
-
-        verify(client, times(1)).performDownloadFileRequest(any());
-        assertEquals(exceptionMsg, resp.getMessage());
-    }
-
-    @Test
-    public void downloadFileServerErrorShouldFileHandlingThrowException() throws FileHandlingException {
-        var exceptionMsg = "server response message";
-        when(client.performDownloadFileRequest(any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", exceptionMsg.getBytes(), StandardCharsets.ISO_8859_1));
-        var resp = fileTransferService.downloadFile(null, true);
-
-        verify(client, times(1)).performDownloadFileRequest(any());
-        assertEquals(exceptionMsg, resp);
-    }
-
-    @Test
-    public void downloadFileShouldBeOk() throws IOException, FileHandlingException {
+    public void downloadFileShouldCallClientAndSaveResponse() throws FileHandlingException {
         var fileName = "fileName";
         var byteContent = "content".getBytes();
-        when(client.performDownloadFileRequest(fileName))
-                .thenReturn(ResponseEntity.ok(byteContent));
-        when(fileHandlingService.saveFile(fileName, byteContent, true))
-                .thenReturn(true);
+        ResponseEntity<byte[]> preparedResponse = ResponseEntity.ok().body(byteContent);
+        when(client.performDownloadFileRequest(any()))
+                .thenReturn(preparedResponse);
+        when(fileHandlingService.saveFile(eq(fileName), eq(byteContent), eq(true)))
+                .thenReturn("ok");
         var resp = fileTransferService.downloadFile(fileName, true);
-        assertEquals(String.format("File %s saved successfully", fileName), resp);
-        verify(client, times(1))
-                .performDownloadFileRequest(eq(fileName));
-        verify(fileHandlingService, times(1))
-                .saveFile(eq(fileName), eq(byteContent), eq(true));
 
+        verify(client, times(1)).performDownloadFileRequest(any());
+        assertEquals("ok", resp);
     }
+
 
 }

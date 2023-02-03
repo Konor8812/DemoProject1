@@ -6,7 +6,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 @Service
@@ -16,38 +15,39 @@ public class FileHandlingService {
     private ClientConfig clientConfig;
 
     @Autowired
-    FileUtil fileUtil;
+    FileUtils fileUtils;
 
-    public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile) throws IOException {
-        return fileUtil.resolveMultipartFile(multipartFile);
+    public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile){
+        return fileUtils.resolveMultipartFile(multipartFile);
     }
 
-    public boolean saveFile(String fileName, byte[] content, boolean overwrite) throws IOException {
+    public String saveFile(String fileName, byte[] content, boolean overwrite) {
         var filePath = resolvePath(fileName);
         if (overwrite) {
-            fileUtil.deleteFileIfExists(filePath);
+            fileUtils.deleteFileIfExists(filePath);
         }
-        return fileUtil.saveFile(filePath, content);
+        return fileUtils.saveFile(filePath, content);
     }
 
-    public boolean deleteFile(String fileName) throws IOException {
-        var filePath = resolveFilePath(fileName);
-        if(filePath != null){
-            return fileUtil.deleteFileIfExists(filePath);
-        }
-        return false;
+    public String deleteFile(String fileName) throws FileHandlingException {
+        return fileUtils.deleteFileIfExists(resolveFilePath(fileName));
     }
 
-    public Path resolveFilePath(String fileName) {
+    public Path resolveFilePath(String fileName) throws FileHandlingException {
         Path filePath;
-        if (fileName != null && fileUtil.exists((filePath = resolvePath(fileName)))) {
+        if (fileName != null && fileUtils.exists((filePath = resolvePath(fileName)))) {
             return filePath;
         }
-        return null;
+        throw new FileHandlingException(String.format("File '%s' isn't found", fileName));
     }
 
     public boolean exists(String fileName) {
-        return resolveFilePath(fileName) != null;
+        try{
+            resolveFilePath(fileName);
+            return true;
+        }catch (FileHandlingException ex){
+            return false;
+        }
     }
 
     private Path resolvePath(String... args) {
