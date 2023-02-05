@@ -8,9 +8,6 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +16,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Data
@@ -53,15 +49,8 @@ public class IMDbMovieParser {
     }
 
     private IMDbMovieEntity parseRow(String row) {
-        Matcher matcher;
-        if ((matcher = rowPattern.matcher(row)).find()) {
-            return tryBuild(matcher);
-        } else {
-            return null;
-        }
-    }
-
-    private IMDbMovieEntity tryBuild(Matcher matcher) {
+        Matcher matcher = rowPattern.matcher(row);
+        matcher.find();
         return IMDbMovieEntity.builder()
                 .title(fixNullStrings(matcher.group(1)))
                 .date(fixNullStrings(matcher.group(2)))

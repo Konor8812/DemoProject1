@@ -19,9 +19,9 @@ import java.util.function.BiFunction;
 public class ProcessorAssigner {
 
     @Autowired
-    SortOperationProcessorUnit sortOperationProcessorUnit;
+    private SortOperationProcessorUnit sortOperationProcessorUnit;
     @Autowired
-    DeleteOperationProcessorUnit deleteOperationProcessorUnit;
+    private DeleteOperationProcessorUnit deleteOperationProcessorUnit;
 
     public BiFunction<List<IMDbMovieEntity>, QueryEntity, List<IMDbMovieEntity>> assignProcessor(QueryEntity queryEntity) throws QueryProcessingException {
         switch (queryEntity.getOperation()) {

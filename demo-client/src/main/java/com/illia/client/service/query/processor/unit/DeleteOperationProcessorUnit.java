@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class DeleteOperationProcessorUnit implements OperationProcessor {
 
     @Autowired
-    IMDbMovieHolder holder;
+    private IMDbMovieHolder holder;
 
     /**
      * Deletes all entities where 'attribute' = value
@@ -27,9 +27,10 @@ public class DeleteOperationProcessorUnit implements OperationProcessor {
 
     @Override
     public List<IMDbMovieEntity> process(List<IMDbMovieEntity> records, QueryEntity queryEntity){
-        var attribute = ((DeleteQueryEntity) queryEntity).getAttribute();
+        var deleteQueryEntity = (DeleteQueryEntity) queryEntity;
+        var attribute = deleteQueryEntity.getAttribute();
+        var value = deleteQueryEntity.getValue();
 
-        var value = ((DeleteQueryEntity) queryEntity).getValue();
         var result = records.stream()
                 .filter(x -> !(value.equals(x.getFieldAccessor(attribute))))
                 .collect(Collectors.toList());

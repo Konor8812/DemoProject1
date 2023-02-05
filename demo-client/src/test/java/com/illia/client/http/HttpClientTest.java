@@ -74,26 +74,6 @@ public class HttpClientTest {
     }
 
     @Test
-    public void uploadFileShouldHandle4xxBadRequest() {
-        when(restTemplate.postForEntity(isA(String.class), any(), any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "Bad request".getBytes(), Charset.defaultCharset()));
-
-        var resp = assertThrowsExactly(FileHandlingException.class,
-                () -> client.performUploadFileRequest("fileName", mock(ByteArrayResource.class), false));
-        assertEquals("Bad request", resp.getMessage());
-    }
-
-    @Test
-    public void uploadFileShouldHandle5xxInternalError(){
-        when(restTemplate.postForEntity(isA(String.class), any(), any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "", "Internal server error".getBytes(), Charset.defaultCharset()));
-
-        var resp = assertThrowsExactly(FileHandlingError.class,
-                () -> client.performUploadFileRequest("fileName", mock(ByteArrayResource.class), false));
-        assertEquals("Internal server error", resp.getMessage());
-    }
-
-    @Test
     public void downloadFileShouldCallRestTemplate() throws FileHandlingException {
         var fileName = "fileName";
         var expectedUrl = String.format(clientConfig.getBaseUrl(), "/downloadFile?fileName=", fileName);
@@ -108,25 +88,6 @@ public class HttpClientTest {
                 .thenReturn(ResponseEntity.ok().build());
         assertTrue(client.performDownloadFileRequest("").getStatusCode().is2xxSuccessful());
     }
-
-    @Test
-    public void downloadFileShouldHandle4xxBadRequest() {
-        when(restTemplate.getForEntity(isA(String.class), any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "Bad request".getBytes(), Charset.defaultCharset()));
-        var resp = assertThrowsExactly(FileHandlingException.class,
-                () -> client.performDownloadFileRequest(""));
-        assertEquals("Bad request", resp.getMessage());
-    }
-
-    @Test
-    public void downloadFileShouldHandle5xxInternalError() {
-        when(restTemplate.getForEntity(isA(String.class), any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "", "Internal server error".getBytes(), Charset.defaultCharset()));
-        var resp = assertThrowsExactly(FileHandlingError.class,
-                () -> client.performDownloadFileRequest(""));
-        assertEquals("Internal server error", resp.getMessage());
-    }
-
 
     @BeforeEach
     public void prepareMock(){

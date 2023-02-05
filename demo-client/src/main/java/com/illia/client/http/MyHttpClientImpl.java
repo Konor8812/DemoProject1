@@ -2,7 +2,6 @@ package com.illia.client.http;
 
 
 import com.illia.client.config.ClientConfig;
-import com.illia.client.service.file.FileHandlingError;
 import com.illia.client.service.file.FileHandlingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -41,7 +39,7 @@ public class MyHttpClientImpl implements MyHttpClient {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        if (overwrite){
+        if (overwrite) {
             headers.add("Overwrite", "true");
         }
 
@@ -49,33 +47,14 @@ public class MyHttpClientImpl implements MyHttpClient {
         body.add("resource", resource);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        return restTemplate.postForEntity(url, requestEntity, String.class);
 
-        try{
-            return restTemplate.postForEntity(url, requestEntity, String.class);
-        }catch (HttpClientErrorException ex){
-            if (ex.getStatusCode().is4xxClientError()) {
-                throw new FileHandlingException(ex.getResponseBodyAsString());
-            } else {
-                throw new FileHandlingError(ex.getResponseBodyAsString());
-            }
-        }
     }
 
     @Override
-    public ResponseEntity<byte[]> performDownloadFileRequest(String fileName) throws FileHandlingException {
+    public ResponseEntity<byte[]> performDownloadFileRequest(String fileName) {
         var url = String.format(clientConfig.getBaseUrl(), DOWNLOAD_FILE_BASE_URL, fileName);
-        try{
-            return restTemplate.getForEntity(url, byte[].class);
-        } catch (HttpClientErrorException ex) {
-            System.out.println(ex.getMessage());
-            System.out.println(ex.getResponseBodyAsString());
-            if (ex.getStatusCode().is4xxClientError()) {
-                throw new FileHandlingException(ex.getResponseBodyAsString());
-            } else {
-                throw new FileHandlingError(ex.getResponseBodyAsString());
-            }
-        }
-
+        return restTemplate.getForEntity(url, byte[].class);
     }
 
 }

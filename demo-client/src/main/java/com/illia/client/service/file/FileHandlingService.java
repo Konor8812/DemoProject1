@@ -15,9 +15,9 @@ public class FileHandlingService {
     private ClientConfig clientConfig;
 
     @Autowired
-    FileUtils fileUtils;
+    private FileUtils fileUtils;
 
-    public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile){
+    public ByteArrayResource resolveMultipartFile(MultipartFile multipartFile) {
         return fileUtils.resolveMultipartFile(multipartFile);
     }
 
@@ -42,12 +42,7 @@ public class FileHandlingService {
     }
 
     public boolean exists(String fileName) {
-        try{
-            resolveFilePath(fileName);
-            return true;
-        }catch (FileHandlingException ex){
-            return false;
-        }
+        return fileUtils.exists(resolvePath(fileName));
     }
 
     private Path resolvePath(String... args) {

@@ -13,8 +13,8 @@ import lombok.Data;
 })
 @Data
 public abstract class QueryEntity {
-    private String fileName;
-    private boolean shouldParse;
+    protected String fileName;
+    protected boolean shouldParse;
 
     public String getFileName(){
         return fileName;

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -49,7 +50,7 @@ public class DemoClientController {
     }
 
     @PostMapping(value = "/query", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<Object> performOperation(@RequestBody QueryEntity queryEntity) throws QueryProcessingException, FileHandlingException {
+    public ResponseEntity<Object> performOperation(@RequestBody QueryEntity queryEntity) throws QueryProcessingException {
         return ResponseEntity.ok().body(queryProcessingService.performOperation(queryEntity));
     }
 
@@ -65,5 +66,13 @@ public class DemoClientController {
     @ExceptionHandler(value = {FileHandlingError.class})
     public ResponseEntity<String> handleFileHandlingError(Error err) {
         return ResponseEntity.internalServerError().body(err.getMessage());
+    }
+    @ExceptionHandler(value = {HttpClientErrorException.class})
+    public ResponseEntity<String> handleHttpClientErrorException (HttpClientErrorException ex){
+        if (ex.getStatusCode().is4xxClientError()) {
+           return ResponseEntity.badRequest().body(ex.getResponseBodyAsString());
+        } else {
+            return ResponseEntity.internalServerError().body(ex.getResponseBodyAsString());
+        }
     }
 }

@@ -6,14 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import static com.illia.client.model.request.registry.OperationsRegistry.DELETE;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
 public class DeleteQueryEntity extends QueryEntity{
-
-    private String fileName;
-    private boolean shouldParse;
-
     private AttributeRegistry attribute;
     private String value;
 
@@ -29,9 +27,8 @@ public class DeleteQueryEntity extends QueryEntity{
 
     @Override
     public OperationsRegistry getOperation() {
-        return OperationsRegistry.valueOf("DELETE");
+        return DELETE;
     }
-
 
 }
 

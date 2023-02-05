@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SortOperationProcessorUnit implements OperationProcessor {
     @Autowired
-    IMDbMovieHolder holder;
+    private IMDbMovieHolder holder;
     /**
      * Sorts input entities list by 'attribute'
      * in 'order' order and
@@ -30,13 +30,14 @@ public class SortOperationProcessorUnit implements OperationProcessor {
 
     @Override
     public List<IMDbMovieEntity> process(List<IMDbMovieEntity> records, QueryEntity queryEntity){
-        var attribute = ((SortQueryEntity) queryEntity).getAttribute();
-        boolean shouldOrderAsc = ((SortQueryEntity) queryEntity).getOrder().equals(OrderRegistry.ASC);
+        var sortQueryEntity = (SortQueryEntity) queryEntity;
+        var attribute = sortQueryEntity.getAttribute();
+        boolean shouldOrderAsc = sortQueryEntity.getOrder() == OrderRegistry.ASC;
 
         var comparator = getComparator(attribute, shouldOrderAsc);
         var result = records.stream()
                 .sorted((x1, x2) -> compare(x1.getFieldAccessor(attribute), x2.getFieldAccessor(attribute), comparator))
-                .limit(((SortQueryEntity) queryEntity).getLimit())
+                .limit(sortQueryEntity.getLimit())
                 .collect(Collectors.toList());
 
         log.info("Input :{} entities, Output :{} entities", records.size(), result.size());

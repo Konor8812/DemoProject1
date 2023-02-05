@@ -7,13 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import static com.illia.client.model.request.registry.OperationsRegistry.SORT;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
 public class SortQueryEntity extends QueryEntity {
-    private String fileName;
-    private boolean shouldParse;
-
     private AttributeRegistry attribute;
     private OrderRegistry order;
     private long limit;
@@ -30,6 +29,6 @@ public class SortQueryEntity extends QueryEntity {
 
     @Override
     public OperationsRegistry getOperation() {
-        return OperationsRegistry.valueOf("SORT");
+        return SORT;
     }
 }
