@@ -11,24 +11,24 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FileTransferService {
 
-    @Autowired
-    private MyHttpClient client;
+  @Autowired
+  private MyHttpClient client;
 
-    @Autowired
-    private FileHandlingService fileHandlingService;
+  @Autowired
+  private FileHandlingService fileHandlingService;
 
-    public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile, boolean overwrite) throws FileHandlingException {
-        return client.performUploadFileRequest(fileName, fileHandlingService.resolveMultipartFile(multipartFile), overwrite);
+  public ResponseEntity<String> uploadFile(String fileName, MultipartFile multipartFile, boolean overwrite) throws FileHandlingException {
+    return client.performUploadFileRequest(fileName, fileHandlingService.resolveMultipartFile(multipartFile), overwrite);
 
+  }
+
+  public String downloadFile(String fileName, boolean overwrite) throws FileHandlingException {
+    if (!overwrite) {
+      if (fileHandlingService.exists(fileName)) {
+        throw new FileHandlingException("File with such name already exists!");
+      }
     }
-
-    public String downloadFile(String fileName, boolean overwrite) throws FileHandlingException{
-        if (!overwrite) {
-            if(fileHandlingService.exists(fileName)) {
-                throw new FileHandlingException("File with such name already exists!");
-            }
-        }
-        return fileHandlingService.saveFile(fileName, client.performDownloadFileRequest(fileName).getBody(), true);
-    }
+    return fileHandlingService.saveFile(fileName, client.performDownloadFileRequest(fileName).getBody(), true);
+  }
 
 }

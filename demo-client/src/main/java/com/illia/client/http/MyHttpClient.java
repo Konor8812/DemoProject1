@@ -6,6 +6,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 
 public interface MyHttpClient {
-    ResponseEntity<String> performUploadFileRequest(String fileName, ByteArrayResource resource, boolean overwrite) throws FileHandlingException;
-    ResponseEntity<byte[]> performDownloadFileRequest(String fileName) throws FileHandlingException;
+
+  ResponseEntity<String> performUploadFileRequest(String fileName, ByteArrayResource resource, boolean overwrite) throws FileHandlingException;
+
+  ResponseEntity<byte[]> performDownloadFileRequest(String fileName) throws FileHandlingException;
 }

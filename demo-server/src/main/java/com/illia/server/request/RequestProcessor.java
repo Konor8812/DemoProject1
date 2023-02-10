@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 
 public interface RequestProcessor {
 
-    ResponseEntity<Object> proceedDownloadFile(String fileName);
-    ResponseEntity<String> proceedSaveFile(String fileName, ByteArrayResource file, boolean overwrite);
-    ResponseEntity<Integer> getFilesAmount();
+  ResponseEntity<Object> proceedDownloadFile(String fileName);
+
+  ResponseEntity<String> proceedSaveFile(String fileName, ByteArrayResource file, boolean overwrite);
+
+  ResponseEntity<Integer> getFilesAmount();
 }

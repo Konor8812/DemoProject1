@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "client")
 public class ClientConfig {
-    private String baseUrl;
-    private String downloadedFilesDirectoryPrefix;
+
+  private String baseUrl;
+  private String downloadedFilesDirectoryPrefix;
 }

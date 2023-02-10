@@ -1,8 +1,21 @@
 package com.illia.client.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.parser.IMDbMovieParser;
 import com.illia.client.service.file.FileHandlingException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -10,48 +23,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 @SpringBootTest(classes = {IMDbMovieParser.class})
 public class IMDbParserTest {
-    @Autowired
-    IMDbMovieParser parser;
 
-    @MockBean
-    IMDbMovieHolderImpl holder;
+  @Autowired
+  IMDbMovieParser parser;
 
-    @Captor
-    ArgumentCaptor<List<IMDbMovieEntity>> holderArgumentCaptor;
+  @MockBean
+  IMDbMovieHolderImpl holder;
 
-    @Test
-    public void parseValidFileShouldBeOkAndCallHolderSaveEntities() throws URISyntaxException, IOException, FileHandlingException {
-        var fileName = "validFile.csv";
-        var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
-        parser.parseFile(filePath);
+  @Captor
+  ArgumentCaptor<List<IMDbMovieEntity>> holderArgumentCaptor;
 
-        verify(holder, times(1)).saveEntities(eq(fileName), holderArgumentCaptor.capture());
+  @Test
+  public void parseValidFileShouldBeOkAndCallHolderSaveEntities() throws URISyntaxException, IOException, FileHandlingException {
+    var fileName = "validFile.csv";
+    var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
+    parser.parseFile(filePath);
 
-        assertEquals(Files.readAllLines(filePath).size() - 1, holderArgumentCaptor.getValue().size());
-    }
+    verify(holder, times(1)).saveEntities(eq(fileName), holderArgumentCaptor.capture());
 
-    @Test
-    public void parseUnreadableFileShouldThrowFileHandlingException() throws URISyntaxException {
-        var fileName = "unparseable-file.csv";
-        var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
+    assertEquals(Files.readAllLines(filePath).size() - 1, holderArgumentCaptor.getValue().size());
+  }
 
-        var parseResult = assertThrowsExactly(FileHandlingException.class,
-                () -> parser.parseFile(filePath));
+  @Test
+  public void parseUnreadableFileShouldThrowFileHandlingException() throws URISyntaxException {
+    var fileName = "unparseable-file.csv";
+    var filePath = Path.of(ClassLoader.getSystemResource(fileName).toURI());
 
-        verify(holder, never()).saveEntities(any(), any());
-        assertEquals("File isn't readable!", parseResult.getMessage());
-    }
+    var parseResult = assertThrowsExactly(FileHandlingException.class,
+        () -> parser.parseFile(filePath));
+
+    verify(holder, never()).saveEntities(any(), any());
+    assertEquals("File isn't readable!", parseResult.getMessage());
+  }
 }
