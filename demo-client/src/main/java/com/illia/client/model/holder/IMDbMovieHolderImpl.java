@@ -1,6 +1,7 @@
 package com.illia.client.model.holder;
 
 import com.illia.client.model.IMDbMovieEntity;
+import com.illia.client.service.query.QueryProcessingException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
     }
 
     @Override
-    public List<IMDbMovieEntity> getEntities(String fileName) {
-        if(!holdsFile(fileName) || entities.isEmpty()){
-            return null;
+    public List<IMDbMovieEntity> getEntities(String fileName) throws QueryProcessingException {
+        if(holdsFile(fileName) && !entities.isEmpty()){
+            throw new QueryProcessingException("Local cache is empty!");
         }
         return entities;
     }
@@ -31,10 +32,6 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
         return this.entities;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return entities.isEmpty();
-    }
 
     @Override
     public boolean holdsFile(String fileName) {

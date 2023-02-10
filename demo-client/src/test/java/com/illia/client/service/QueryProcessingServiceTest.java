@@ -44,7 +44,7 @@ public class QueryProcessingServiceTest {
     public void performOperationShouldSolveFileHandlingExceptionAndThrowQueryProcessingException() throws FileHandlingException {
         var requestEntity = mock(QueryEntity.class);
         var exceptionMsg=  "exceptionMsg";
-        when(requestEntity.shouldParse())
+        when(requestEntity.isShouldParse())
                 .thenReturn(true);
         when(fileHandlingService.resolveFilePath(any()))
                 .thenThrow(new FileHandlingException(exceptionMsg));
@@ -59,13 +59,13 @@ public class QueryProcessingServiceTest {
     }
 
     @Test
-    public void performOperationEmptyHolderTestShouldThrowException() {
+    public void performOperationEmptyHolderTestShouldThrowException() throws QueryProcessingException {
         var requestEntity = mock(QueryEntity.class);
 
-        when(requestEntity.shouldParse())
+        when(requestEntity.isShouldParse())
                 .thenReturn(false);
         when(holder.getEntities(any()))
-                .thenReturn(null);
+                .thenThrow(new QueryProcessingException("Local cache is empty!"));
 
         var response = assertThrowsExactly(QueryProcessingException.class, () -> {
             queryProcessingService.performOperation(requestEntity);
@@ -85,7 +85,7 @@ public class QueryProcessingServiceTest {
 
         when(requestEntity.getFileName())
                 .thenReturn(fileName);
-        when(requestEntity.shouldParse())
+        when(requestEntity.isShouldParse())
                 .thenReturn(true);
         when(fileHandlingService.resolveFilePath(fileName))
                 .thenReturn(mock(Path.class));
@@ -108,7 +108,7 @@ public class QueryProcessingServiceTest {
 
         when(requestEntity.getFileName())
                 .thenReturn(fileName);
-        when(requestEntity.shouldParse())
+        when(requestEntity.isShouldParse())
                 .thenReturn(false);
 
         when(holder.getEntities(eq(fileName)))

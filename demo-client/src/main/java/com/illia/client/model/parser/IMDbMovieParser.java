@@ -5,6 +5,7 @@ import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.service.file.FileHandlingError;
 import com.illia.client.service.file.FileHandlingException;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Data
 public class IMDbMovieParser {
@@ -31,18 +33,19 @@ public class IMDbMovieParser {
 
     public List<IMDbMovieEntity> parseFile(Path path) throws FileHandlingException {
         try {
-            var lines =  Files.readAllLines(path);
-            if(lines.stream()
+            var lines = Files.readAllLines(path);
+            if (lines.stream()
                     .skip(1)
-                    .allMatch(x -> rowPattern.matcher(x).find())){
-                var reports = lines.stream().skip(1)
-                        .map(this::parseRow)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                reportsHolder.saveEntities(String.valueOf(path.getFileName()), reports);
-                return reports;
+                    .allMatch(x -> rowPattern.matcher(x).find())) {
+
+                return reportsHolder.saveEntities(String.valueOf(path.getFileName()),
+                        lines.stream()
+                                .skip(1)
+                                .map(this::parseRow)
+                                .collect(Collectors.toList()));
             }
         } catch (IOException e) {
+            log.error("IOException while parsing file ", e);
             throw new FileHandlingError("Server error while reading file!");
         }
         throw new FileHandlingException("File isn't readable!");

@@ -28,16 +28,14 @@ public class QueryProcessingService {
         var fileName = queryEntity.getFileName();
 
         List<IMDbMovieEntity> records = null;
-        if (queryEntity.shouldParse()) {
+        if (queryEntity.isShouldParse()) {
             try{
                 records = requestParseFile(fileName);
-            }catch (FileHandlingException ex){
+            }catch (FileHandlingException ex){ // reasonable exceptions convention?
                 throw new QueryProcessingException(ex.getMessage());
             }
         } else {
-            if ((records = holder.getEntities(fileName)) == null) {
-                throw new QueryProcessingException("Local cache is empty!");
-            }
+            records = holder.getEntities(fileName);
         }
         return processorAssigner.assignProcessor(queryEntity)
                         .apply(records, queryEntity);
