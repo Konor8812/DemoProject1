@@ -30,12 +30,13 @@ public class QueryProcessingService {
     if (queryEntity.isShouldParse()) {
       try {
         records = requestParseFile(fileName);
-      } catch (FileHandlingException ex) { // reasonable exceptions convention?
+      } catch (FileHandlingException ex) {
         throw new QueryProcessingException(ex.getMessage());
       }
     } else {
       records = holder.getEntities(fileName);
     }
+
     return processorAssigner.assignProcessor(queryEntity)
         .apply(records, queryEntity);
   }

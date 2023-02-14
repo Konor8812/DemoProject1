@@ -19,9 +19,9 @@ public class IMDbMovieHolderImpl implements IMDbMovieHolder {
   @Override
   public List<IMDbMovieEntity> getEntities(String fileName) throws QueryProcessingException {
     if (holdsFile(fileName) && !entities.isEmpty()) {
-      throw new QueryProcessingException("Local cache is empty!");
+      return entities;
     }
-    return entities;
+    throw new QueryProcessingException("Local cache is empty!");
   }
 
   @Override
