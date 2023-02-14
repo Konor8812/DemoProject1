@@ -1,51 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <packaging>pom</packaging>
-    <modules>
-        <module>demo-server</module>
-        <module>demo-client</module>
-    </modules>
-    <parent>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>DemoProject1</artifactId>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <artifactId>lombok</artifactId>
+              <groupId>org.projectlombok</groupId>
+            </exclude>
+          </excludes>
+        </configuration>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.5</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-    <groupId>com.illia</groupId>
-    <artifactId>DemoProject1</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>DemoProject1</name>
-    <description>DemoProject1</description>
-    <properties>
-        <java.version>11</java.version>
-    </properties>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <artifactId>commons-fileupload</artifactId>
+      <groupId>commons-fileupload</groupId>
+      <version>1.4</version>
+    </dependency>
 
-    <dependencies>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.4</version>
-        </dependency>
+  </dependencies>
+  <description>DemoProject1</description>
+  <groupId>com.illia</groupId>
+  <modelVersion>4.0.0</modelVersion>
+  <modules>
+    <module>demo-server</module>
+    <module>demo-client</module>
+  </modules>
+  <name>DemoProject1</name>
+  <packaging>pom</packaging>
+  <parent>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <relativePath/>
+    <version>2.7.5</version> <!-- lookup parent from repository -->
+  </parent>
 
-    </dependencies>
+  <properties>
+    <java.version>11</java.version>
+  </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+  <version>0.0.1-SNAPSHOT</version>
 
 </project>
