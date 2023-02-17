@@ -7,6 +7,7 @@ import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.file.FileTransferService;
 import com.illia.client.service.query.QueryProcessingException;
 import com.illia.client.service.query.QueryProcessingService;
+import java.net.ConnectException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -83,5 +84,10 @@ public class DemoClientController {
     } else {
       return ResponseEntity.internalServerError().body(ex.getResponseBodyAsString());
     }
+  }
+
+  @ExceptionHandler(value = {ConnectException.class})
+  public ResponseEntity<String> handleConnectException(ConnectException ex){
+    return ResponseEntity.internalServerError().body("Can't connect to server");
   }
 }

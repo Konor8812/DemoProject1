@@ -9,6 +9,6 @@ public class ObjectMapperConfig {
 
   @Bean
   public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
-    return builder -> builder.failOnUnknownProperties(false);
+    return builder -> builder.failOnUnknownProperties(false).failOnEmptyBeans(false);
   }
 }
