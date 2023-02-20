@@ -16,8 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CountQueryEntity extends QueryEntity {
 
-  private Map<AttributeRegistry, String> attributeValueMap;
-  private AttributeRegistry[] attributesToShow;
+  private AttributeRegistry attribute;
 
   @Override
   public OperationsRegistry getOperation() {

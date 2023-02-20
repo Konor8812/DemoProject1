@@ -5,8 +5,8 @@ import com.illia.client.model.request.entity.AverageQueryEntity;
 import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.model.request.registry.AttributeRegistry;
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,29 +22,53 @@ public class AverageOperationProcessorUnit implements OperationProcessor {
   @Override
   public List<?> process(List<IMDbMovieEntity> records, QueryEntity queryEntity) {
     AverageQueryEntity averageQueryEntity = (AverageQueryEntity) queryEntity;
-    var attributes = averageQueryEntity.getAttributeValueMap();
     var attributeToFind = averageQueryEntity.getAttributeToFind();
 
-    if (attributes.isEmpty()) {
-      //if(attributeToFind.isANumber())
-      var map = new HashMap<AttributeRegistry, Pair<Double>>();
-      records.stream()
-          .forEach(x -> {
-            map.merge(attributeToFind,
-                new Pair<Double>(1,
-                    Double.parseDouble(x.getFieldAccessor(attributeToFind))),
-                (v1, v2) -> new Pair<>(v1.amount + 1, v1.getSum() + Double.parseDouble(x.getFieldAccessor(attributeToFind))));
-          });
+    assert isANumber(attributeToFind) : "Can't find average for " + attributeToFind; 
+    var attributeToGroup = averageQueryEntity.getAttributeToGroup();
+    assert canGroupBy(attributeToGroup) : "Can't group by this attribute!";
 
-      return map.entrySet().stream()
-          .map(x -> x.getKey() + "  " + DECIMAL_FORMAT.format(x.getValue().getSum() / x.getValue().getAmount())).collect(Collectors.toList());
-    } else {
-      var temp = records.stream()
-          .filter(x -> attributes.entrySet().stream()
-              .allMatch(e -> x.getFieldAccessor(e.getKey()).equals(e.getValue())))
-          .mapToDouble(x -> Double.parseDouble(x.getFieldAccessor(attributeToFind))).average();
+    return records.stream()
+        .collect(Collectors.groupingBy(x -> x.getFieldAccessor(attributeToGroup)))
+        .entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey, x -> x.getValue().stream()
+            .map(e -> e.getFieldAccessor(attributeToFind))
+            .mapToDouble(Double::parseDouble).average()))
+        .entrySet().stream()
+        .map(x -> "Average for " + x.getKey() + " = " + DECIMAL_FORMAT.format(x.getValue().getAsDouble()))
+        .collect(Collectors.toList());
 
-      return List.of(DECIMAL_FORMAT.format(temp));
+  }
+
+  private boolean isANumber(AttributeRegistry attributeToFind) {
+    switch (attributeToFind) {
+      case LEAD_ACTOR_FB_LIKES:
+      case CAST_FB_LIKES:
+      case DIRECTOR_FB_LIKES:
+      case MOVIE_FB_LIKES:
+      case IMDB_SCORE:
+      case TOTAL_REVIEWS:
+      case DURATION:
+      case GROSS_REVENUE:
+      case BUDGET:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private boolean canGroupBy(AttributeRegistry attribute) {
+    switch (attribute) {
+      case COLOR:
+      case GENRE:
+      case LANGUAGE:
+      case COUNTRY:
+      case RATING:
+      case DIRECTOR_NAME:
+      case IMDB_SCORE:
+        return true;
+      default:
+        return false;
     }
   }
 
