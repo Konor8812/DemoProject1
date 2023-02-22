@@ -24,7 +24,7 @@ public class AverageOperationProcessorUnit implements OperationProcessor {
     AverageQueryEntity averageQueryEntity = (AverageQueryEntity) queryEntity;
     var attributeToFind = averageQueryEntity.getAttributeToFind();
 
-    assert isANumber(attributeToFind) : "Can't find average for " + attributeToFind; 
+    assert isANumber(attributeToFind) : "Can't find average for " + attributeToFind;
     var attributeToGroup = averageQueryEntity.getAttributeToGroup();
     assert canGroupBy(attributeToGroup) : "Can't group by this attribute!";
 
@@ -70,14 +70,6 @@ public class AverageOperationProcessorUnit implements OperationProcessor {
       default:
         return false;
     }
-  }
-
-  @Data
-  @AllArgsConstructor
-  private static class Pair<S> {
-
-    private Integer amount;
-    private S sum;
   }
 
 }
