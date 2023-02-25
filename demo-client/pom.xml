@@ -30,6 +30,9 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <build>
+    <finalName>demo-client</finalName>
+  </build>
   <parent>
     <artifactId>DemoProject1</artifactId>
     <groupId>com.illia</groupId>
