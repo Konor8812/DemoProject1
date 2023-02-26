@@ -27,9 +27,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push Docker image to Dockerhub
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: konor881/imdb-analyzer:latest
+      - name: Build demo-client and demo-server Docker image
+        run: |
+        docker build -t konor881/demo-client:latest demo-client/
+        docker build -t konor881/demo-server:latest demo-server/
+      - name: Push Docker images to Dockerhub
+        run: |
+          docker push konor881/demo-client:latest
+          docker push konor881/demo-server:latest
