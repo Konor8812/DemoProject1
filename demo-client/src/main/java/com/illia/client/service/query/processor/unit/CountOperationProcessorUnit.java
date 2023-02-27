@@ -18,7 +18,7 @@ public class CountOperationProcessorUnit implements OperationProcessor {
     CountQueryEntity countQueryEntity = (CountQueryEntity) queryEntity;
     var attribute = countQueryEntity.getAttribute();
 
-    assert canGroupBy(attribute) : "Can't perform operation with this attribute!";
+    assert attribute.isOkForGroupBy() : "Can't perform operation with this attribute!";
 
     return records.stream()
         .collect(Collectors.groupingBy(x -> x.getFieldAccessor(attribute)))

@@ -24,9 +24,9 @@ public class AverageOperationProcessorUnit implements OperationProcessor {
     AverageQueryEntity averageQueryEntity = (AverageQueryEntity) queryEntity;
     var attributeToFind = averageQueryEntity.getAttributeToFind();
 
-    assert isANumber(attributeToFind) : "Can't find average for " + attributeToFind;
+    assert attributeToFind.isANumber() : "Can't find average for " + attributeToFind;
     var attributeToGroup = averageQueryEntity.getAttributeToGroup();
-    assert canGroupBy(attributeToGroup) : "Can't group by this attribute!";
+    assert attributeToGroup.isOkForGroupBy() : "Can't group by this attribute!";
 
     return records.stream()
         .collect(Collectors.groupingBy(x -> x.getFieldAccessor(attributeToGroup)))
@@ -38,38 +38,6 @@ public class AverageOperationProcessorUnit implements OperationProcessor {
         .map(x -> "Average for " + x.getKey() + " = " + DECIMAL_FORMAT.format(x.getValue().getAsDouble()))
         .collect(Collectors.toList());
 
-  }
-
-  private boolean isANumber(AttributeRegistry attributeToFind) {
-    switch (attributeToFind) {
-      case LEAD_ACTOR_FB_LIKES:
-      case CAST_FB_LIKES:
-      case DIRECTOR_FB_LIKES:
-      case MOVIE_FB_LIKES:
-      case IMDB_SCORE:
-      case TOTAL_REVIEWS:
-      case DURATION:
-      case GROSS_REVENUE:
-      case BUDGET:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private boolean canGroupBy(AttributeRegistry attribute) {
-    switch (attribute) {
-      case COLOR:
-      case GENRE:
-      case LANGUAGE:
-      case COUNTRY:
-      case RATING:
-      case DIRECTOR_NAME:
-      case IMDB_SCORE:
-        return true;
-      default:
-        return false;
-    }
   }
 
 }
