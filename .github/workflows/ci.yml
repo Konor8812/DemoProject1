@@ -11,17 +11,17 @@ jobs:
   pre-build:
     runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v3
+          - uses: actions/checkout@v3
 
-        - name: Set up JDK 11
-          uses: actions/setup-java@v3
-          with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: maven
+            - name: Set up JDK 11
+              uses: actions/setup-java@v3
+              with:
+              java-version: '11'
+              distribution: 'temurin'
+              cache: maven
 
   build-artifact:
-      needs: pre-build
+    needs: pre-build
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
@@ -33,7 +33,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
   build-docker-images:
-      needs: login-dockerhub
+    needs: login-dockerhub
 
     - name: Build demo-server Docker image
       run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
@@ -42,7 +42,7 @@ jobs:
       run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
 
   push-docker-images:
-      needs: login-dockerhub
+    needs: login-dockerhub
 
     - name: Push demo-server Docker image to Dockerhub
       run: docker push konor881/imdb-analyzer-server:latest
