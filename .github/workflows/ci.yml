@@ -21,31 +21,33 @@ jobs:
 
   build-artifact:
     needs: pre-build
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+    steps:
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
 
   login-dockerhub:
-    - name: Login to DockerHub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
   build-docker-images:
     needs: login-dockerhub
+    steps:
+      - name: Build demo-server Docker image
+        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
 
-    - name: Build demo-server Docker image
-      run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
-
-    - name: Build demo-client Docker image
-      run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
+      - name: Build demo-client Docker image
+        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
 
   push-docker-images:
     needs: login-dockerhub
+    steps:
+      - name: Push demo-server Docker image to Dockerhub
+        run: docker push konor881/imdb-analyzer-server:latest
 
-    - name: Push demo-server Docker image to Dockerhub
-      run: docker push konor881/imdb-analyzer-server:latest
-
-    - name: Push demo-client Docker image to Dockerhub
-      run: docker push konor881/imdb-analyzer-client:latest
+      - name: Push demo-client Docker image to Dockerhub
+        run: docker push konor881/imdb-analyzer-client:latest
 
