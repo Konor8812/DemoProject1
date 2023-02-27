@@ -20,12 +20,14 @@ jobs:
           cache: maven
 
   build-artifact:
+    runs-on: ubuntu-latest
     needs: pre-build
     steps:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
   login-dockerhub:
+    runs-on: ubuntu-latest
     steps:
       - name: Login to DockerHub
         uses: docker/login-action@v2
@@ -34,6 +36,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
   build-docker-images:
+    runs-on: ubuntu-latest
     needs: login-dockerhub
     steps:
       - name: Build demo-server Docker image
@@ -43,6 +46,7 @@ jobs:
         run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
 
   push-docker-images:
+    runs-on: ubuntu-latest
     needs: login-dockerhub
     steps:
       - name: Push demo-server Docker image to Dockerhub
@@ -50,4 +54,3 @@ jobs:
 
       - name: Push demo-client Docker image to Dockerhub
         run: docker push konor881/imdb-analyzer-client:latest
-
