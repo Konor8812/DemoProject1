@@ -7,35 +7,46 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
 
+  pre-build:
     runs-on: ubuntu-latest
-
-    steps:
+      steps:
       - uses: actions/checkout@v3
 
       - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: maven
+         java-version: '11'
+         distribution: 'temurin'
+         cache: maven
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+  build-artifact:
+      needs: pre-build
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  login-dockerhub:
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build demo-client Docker image
-        run: docker build -t konor881/imdb-analyzer:client demo-client/
-      - name: Push demo-client Docker image to Dockerhub
-        run: docker push konor881/imdb-analyzer:client
+  build-docker-images:
+      needs: login-dockerhub
+      
+    - name: Build demo-server Docker image
+      run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
 
-      - name: Build demo-server Docker image
-        run: docker build -t konor881/imdb-analyzer:server demo-server/
-      - name: Push demo-server Docker image to Dockerhub
-        run: docker push konor881/imdb-analyzer:server
+    - name: Build demo-client Docker image
+      run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
+
+  push-docker-images:
+      needs: login-dockerhub
+
+    - name: Push demo-server Docker image to Dockerhub
+      run: docker push konor881/imdb-analyzer-server:latest
+
+    - name: Push demo-client Docker image to Dockerhub
+      run: docker push konor881/imdb-analyzer-client:latest
+
