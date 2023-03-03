@@ -27,16 +27,13 @@ jobs:
           mvn test
 
       - name: Get demo-client code coverage
-        run: |
-          mvn jacoco:report
-          cd demo-client
-          ls -a
+        run: mvn jacoco:report
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           recreate: true
-          path: target/site/jacoco/ingex.html
+          path: demo-client/target/site/jacoco/ingex.html
 
   ci-build-push-artifact-to-dockerhub:
     needs: run-tests
