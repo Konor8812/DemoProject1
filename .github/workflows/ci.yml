@@ -24,6 +24,15 @@ jobs:
       - name: Run tests
         run: mvn test
 
+      - name: Get test coverage
+        run: mvn jacoco:report
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: target/site/jacoco/ingex.html
+
   ci-build-push-artifact-to-dockerhub:
     needs: run-tests
     runs-on: ubuntu-latest
