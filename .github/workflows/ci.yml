@@ -27,7 +27,9 @@ jobs:
           mvn test
 
       - name: Get demo-client code coverage
-        run: mvn jacoco:report
+        run: |
+          mvn jacoco:report
+          ls -a
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
