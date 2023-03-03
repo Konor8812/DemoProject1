@@ -29,6 +29,7 @@ jobs:
       - name: Get demo-client code coverage
         run: |
           mvn jacoco:report
+          cd demo-client
           ls -a
 
       - name: Add Coverage PR Comment
