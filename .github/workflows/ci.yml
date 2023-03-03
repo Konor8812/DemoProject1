@@ -21,10 +21,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn test
+      - name: Run demo-client tests
+        run: |
+        cd demo-client
+        mvn test
 
-      - name: Get test coverage
+      - name: Get demo-client code coverage
         run: mvn jacoco:report
 
       - name: Add Coverage PR Comment
