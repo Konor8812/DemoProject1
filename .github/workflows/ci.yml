@@ -21,14 +21,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run demo-client tests
+      - name: Run  tests
+        run: mvn test
+
+      - name: Get code coverage
         run: |
           cd demo-client
-          mvn test
-
-      - name: Get demo-client code coverage
-        run: mvn jacoco:report
-
+          mvn jacoco:report
+          
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
