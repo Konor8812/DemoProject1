@@ -26,9 +26,10 @@ jobs:
 
       - name: Get code coverage
         run: |
-          ls -a
-          cd ${{ github.workspace }}
-          ls -a
+          cd demo-client
+          mvn jacoco:report
+          ls -r
+          
 
       - name: Add Coverage PR Comment
         uses: madrapps/jacoco-report@v1.3
