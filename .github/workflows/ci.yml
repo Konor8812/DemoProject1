@@ -22,11 +22,12 @@ jobs:
           cache: maven
 
       - name: Run  tests
-        run: mvn package
+        run: |
+        cd demo-client
+        mvn package
 
       - name: Get code coverage
         run: |
-          cd demo-client
           mvn jacoco:report
           ls -r
           ls -d
