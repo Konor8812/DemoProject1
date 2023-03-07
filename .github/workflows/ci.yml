@@ -21,8 +21,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-#      - name: Run  tests
-#        run: mvn package
+      - name: Run  tests
+        run: mvn package
 
       - name: Get code coverage
         run: |
