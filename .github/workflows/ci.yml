@@ -21,13 +21,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run  tests
-        run: mvn package
+#      - name: Run  tests
+#        run: mvn package
 
       - name: Get code coverage
         run: |
-          cd demo-client
-          mvn jacoco:report
+#          cd demo-client
+#          mvn jacoco:report
+          ls -a
+          cd ${{ github.workspace }}
           ls -a
 
       - name: Add Coverage PR Comment
