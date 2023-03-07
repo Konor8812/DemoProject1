@@ -22,45 +22,44 @@ jobs:
           cache: maven
 
       - name: Run  tests
-        run: mvn test
+        run: mvn package
 
       - name: Get code coverage
         run: |
           cd demo-client
           mvn jacoco:report
-          
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: madrapps/jacoco-report@v1.3
         with:
-          recreate: true
-          path: demo-client/target/site/jacoco/jacoco.csv
+          paths: target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-  ci-build-push-artifact-to-dockerhub:
-    needs: run-tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Git clone repo
-        uses: actions/checkout@v3
-
-      - name: Build with Maven
-        run: mvn package -Dmaven.test.skip
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build demo-server Docker image
-        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
-
-      - name: Build demo-client Docker image
-        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
-
-      - name: Push demo-server Docker image to Dockerhub
-        run: docker push konor881/imdb-analyzer-server:latest
-
-      - name: Push demo-client Docker image to Dockerhub
-        run: docker push konor881/imdb-analyzer-client:latest
+#  ci-build-push-artifact-to-dockerhub:
+#    needs: run-tests
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Git clone repo
+#        uses: actions/checkout@v3
+#
+#      - name: Build with Maven
+#        run: mvn package -Dmaven.test.skip
+#
+#      - name: Login to DockerHub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#
+#      - name: Build demo-server Docker image
+#        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
+#
+#      - name: Build demo-client Docker image
+#        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
+#
+#      - name: Push demo-server Docker image to Dockerhub
+#        run: docker push konor881/imdb-analyzer-server:latest
+#
+#      - name: Push demo-client Docker image to Dockerhub
+#        run: docker push konor881/imdb-analyzer-client:latest
