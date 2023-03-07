@@ -14,7 +14,7 @@ jobs:
     - name: my-artifact
       uses: actions/upload-artifact@v3
       with:
-        path: pom.xml
+        path: ${{ github.workspace }}/pom.xml
 
     - name: test
       run: |
