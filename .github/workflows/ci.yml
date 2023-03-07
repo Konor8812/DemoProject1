@@ -11,6 +11,11 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
+
+    - name: ls
+      run: |
+        ls -a
+
     - name: my-artifact
       uses: actions/upload-artifact@v3
       with:
