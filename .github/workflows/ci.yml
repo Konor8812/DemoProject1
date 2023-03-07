@@ -26,8 +26,6 @@ jobs:
 
       - name: Get code coverage
         run: |
-#          cd demo-client
-#          mvn jacoco:report
           ls -a
           cd ${{ github.workspace }}
           ls -a
