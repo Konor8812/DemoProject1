@@ -23,8 +23,8 @@ jobs:
 
       - name: Run  tests
         run: |
-        cd demo-client
-        mvn package
+          cd demo-client
+          mvn package
 
       - name: Get code coverage
         run: |
