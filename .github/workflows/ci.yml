@@ -60,8 +60,8 @@ jobs:
 
       - name: Run  tests
         run: |
-        cd demo-server
-        mvn package
+          cd demo-server
+          mvn package
 
       - name: Get code coverage report
         run: mvn jacoco:report
