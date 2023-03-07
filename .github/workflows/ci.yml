@@ -26,17 +26,14 @@ jobs:
           cd demo-client
           mvn package
 
-      - name: Get code coverage
+      - name: Get code coverage report
         run: |
           mvn jacoco:report
-          ls -r
-          ls -d
-          
 
       - name: Add Coverage PR Comment
         uses: madrapps/jacoco-report@v1.3
         with:
-          paths: target/site/jacoco/jacoco.xml
+          paths: ${{ github.workspace }}/demo-client/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
 
 #  ci-build-push-artifact-to-dockerhub:
