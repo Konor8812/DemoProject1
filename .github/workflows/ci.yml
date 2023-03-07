@@ -29,6 +29,7 @@ jobs:
           cd demo-client
           mvn jacoco:report
           ls -r
+          ls -d
           
 
       - name: Add Coverage PR Comment
