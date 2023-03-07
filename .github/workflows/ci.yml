@@ -28,6 +28,7 @@ jobs:
         run: |
           cd demo-client
           mvn jacoco:report
+          ls -a
 
       - name: Add Coverage PR Comment
         uses: madrapps/jacoco-report@v1.3
