@@ -42,7 +42,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: demo-client
-        path: ./target/demo-client.jar
+        path: ./demo-client/target/demo-client.jar
 
 
   build-demo-server:
