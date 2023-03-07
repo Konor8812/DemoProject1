@@ -28,9 +28,7 @@ jobs:
         mvn package
 
     - name: Get code coverage report
-      run: |
-        mvn jacoco:report
-        ls -a
+      run: mvn jacoco:report
 
     - name: Add Coverage PR Comment
       uses: madrapps/jacoco-report@v1.3
@@ -43,6 +41,7 @@ jobs:
     - name: demo-client artifact upload
       uses: actions/upload-artifact@v3
       with:
+        name: demo-client
         path: ./target/demo-client.jar
 
 
@@ -60,12 +59,12 @@ jobs:
           cache: maven
 
       - name: Run  tests
-        run: mvn package
+        run: |
+        cd demo-server
+        mvn package
 
       - name: Get code coverage report
-        run: |
-          mvn jacoco:report
-          ls -a
+        run: mvn jacoco:report
 
       - name: Add Coverage PR Comment
         uses: madrapps/jacoco-report@v1.3
@@ -78,6 +77,7 @@ jobs:
       - name: demo-server artifact upload
         uses: actions/upload-artifact@v3
         with:
+          name: demo-server
           path: ./demo-server/target/demo-server.jar
 
 
