@@ -46,7 +46,7 @@ jobs:
     - name: demo-client artifact upload
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ DEMO_CLIENT_ARTIFACT_NAME }}
+        name: ${{ env.DEMO_CLIENT_ARTIFACT_NAME }}
         path: ./demo-client/target/demo-client.jar
 
 
@@ -82,7 +82,7 @@ jobs:
       - name: demo-server artifact upload
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ DEMO_SERVER_ARTIFACT_NAME }}
+          name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
           path: ./demo-server/target/demo-server.jar
 
   push-artifacts-to-dockerhub:
@@ -100,12 +100,12 @@ jobs:
       - name: download demo-client-artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ DEMO_SERVER_ARTIFACT_NAME }}
+          name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
 
       - name: download demo-server-artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ DEMO_SERVER_ARTIFACT_NAME }}
+          name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
 
 
       - name: test
