@@ -6,11 +6,12 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+  DEMO_CLIENT_ARTIFACT_NAME: "ClientArtifact"
+  DEMO_SERVER_ARTIFACT_NAME: "ServerArtifact"
+
 jobs:
 
-  env:
-    DEMO_CLIENT_ARTIFACT_NAME: "ClientArtifact"
-    DEMO_SERVER_ARTIFACT_NAME: "ServerArtifact"
 
   build-demo-client:
     runs-on: ubuntu-latest
