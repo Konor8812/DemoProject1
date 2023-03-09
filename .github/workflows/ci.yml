@@ -123,7 +123,7 @@ jobs:
         run: ls -a
 
       - name: Build demo-client Docker image
-        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
+        run: docker build -t konor881/imdb-analyzer-client:latest .
       - name: Push demo-client Docker image to Dockerhub
         run: docker push konor881/imdb-analyzer-client:latest
 
@@ -153,7 +153,7 @@ jobs:
         run: ls -a
 
       - name: Build demo-server Docker image
-        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
+        run: docker build -t konor881/imdb-analyzer-server:latest .
 
       - name: Push demo-server Docker image to Dockerhub
         run: docker push konor881/imdb-analyzer-server:latest
