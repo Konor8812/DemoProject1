@@ -9,6 +9,8 @@ on:
 env:
   DEMO_CLIENT_ARTIFACT_NAME: "ClientArtifact"
   DEMO_SERVER_ARTIFACT_NAME: "ServerArtifact"
+  DEMO_CLIENT_DOCKERFILE: "Client-side dockerfile"
+  DEMO_SERVER_DOCKERFILE: "Server-side dockerfile"
 
 jobs:
 
@@ -17,38 +19,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Git clone repo
-      uses: actions/checkout@v3
+      - name: Git clone repo
+        uses: actions/checkout@v3
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Run  tests
-      run: |
-        cd demo-client
-        mvn package
+      - name: Run  tests
+        run: |
+          cd demo-client
+          mvn package
 
-    - name: Get code coverage report
-      run: mvn jacoco:report
+      - name: Get code coverage report
+        run: mvn jacoco:report
 
-    - name: Add Coverage PR Comment
-      uses: madrapps/jacoco-report@v1.3
-      with:
-        title: Demo client code coverage
-        paths: ${{ github.workspace }}/demo-client/target/site/jacoco/jacoco.xml
-        token: ${{ secrets.GITHUB_TOKEN }}
-        min-coverage-overall: 40
+      - name: Add Coverage PR Comment
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          title: Demo client code coverage
+          paths: ${{ github.workspace }}/demo-client/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 40
 
-    - name: demo-client artifact upload
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ env.DEMO_CLIENT_ARTIFACT_NAME }}
-        path: ./demo-client/target/demo-client.jar
+      - name: demo-client artifact upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DEMO_CLIENT_ARTIFACT_NAME }}
+          path: ./demo-client/target/demo-client.jar
 
+      - name: demo-client dockerfile upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DEMO_CLIENT_DOCKERFILE }}
+          path: ./demo-client/Dockerfile
 
   build-demo-server:
     runs-on: ubuntu-latest
@@ -85,8 +92,43 @@ jobs:
           name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
           path: ./demo-server/target/demo-server.jar
 
-  push-artifacts-to-dockerhub:
-    needs: [ build-demo-server, build-demo-client ]
+      - name: demo-server dockerfile upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DEMO_SERVER_DOCKERFILE }}
+          path: ./demo-server/Dockerfile
+
+  push-demo-client-to-dockerhub:
+    needs: build-demo-client
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: download demo-client artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.DEMO_CLIENT_ARTIFACT_NAME }}
+
+      - name: download demo-client dockerfile
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.DEMO_CLIENT_DOCKERFILE }}
+
+      - name: test
+        run: ls -a
+
+      - name: Build demo-client Docker image
+        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
+      - name: Push demo-client Docker image to Dockerhub
+        run: docker push konor881/imdb-analyzer-client:latest
+
+  push-demo-server-to-dockerhub:
+    needs: [ build-demo-server ]
     runs-on: ubuntu-latest
 
     steps:
@@ -97,28 +139,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: download demo-client-artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
-
       - name: download demo-server-artifact
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.DEMO_SERVER_ARTIFACT_NAME }}
 
+      - name: download demo-server dockerfile
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.DEMO_SERVER_DOCKERFILE }}
 
       - name: test
         run: ls -a
 
-#      - name: Build demo-server Docker image
-#        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
-#
-#      - name: Build demo-client Docker image
-#        run: docker build -t konor881/imdb-analyzer-client:latest demo-client/
-#
-#      - name: Push demo-server Docker image to Dockerhub
-#        run: docker push konor881/imdb-analyzer-server:latest
-#
-#      - name: Push demo-client Docker image to Dockerhub
-#        run: docker push konor881/imdb-analyzer-client:latest
+      - name: Build demo-server Docker image
+        run: docker build -t konor881/imdb-analyzer-server:latest demo-server/
+
+      - name: Push demo-server Docker image to Dockerhub
+        run: docker push konor881/imdb-analyzer-server:latest
