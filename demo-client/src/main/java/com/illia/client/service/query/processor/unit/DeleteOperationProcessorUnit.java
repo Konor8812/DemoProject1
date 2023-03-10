@@ -23,7 +23,7 @@ public class DeleteOperationProcessorUnit implements OperationProcessor {
    */
 
   @Override
-  public List<IMDbMovieEntity> process(List<IMDbMovieEntity> records, QueryEntity queryEntity) {
+  public List<?> process(List<IMDbMovieEntity> records, QueryEntity queryEntity) {
     var deleteQueryEntity = (DeleteQueryEntity) queryEntity;
     var attribute = deleteQueryEntity.getAttribute();
     var value = deleteQueryEntity.getValue();

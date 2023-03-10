@@ -3,6 +3,7 @@ package com.illia.client.service.query;
 import com.illia.client.model.IMDbMovieEntity;
 import com.illia.client.model.holder.IMDbMovieHolderImpl;
 import com.illia.client.model.parser.IMDbMovieParser;
+import com.illia.client.model.request.entity.CountQueryEntity;
 import com.illia.client.model.request.entity.QueryEntity;
 import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
@@ -23,7 +24,7 @@ public class QueryProcessingService {
   @Autowired
   private IMDbMovieHolderImpl holder;
 
-  public List<IMDbMovieEntity> performOperation(QueryEntity queryEntity) throws QueryProcessingException {
+  public List<?> performOperation(QueryEntity queryEntity) throws QueryProcessingException {
     var fileName = queryEntity.getFileName();
 
     List<IMDbMovieEntity> records;
