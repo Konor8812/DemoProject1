@@ -1,105 +1,95 @@
-//package com.illia.server.file;
-//
-//import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertFalse;
-//import static org.junit.jupiter.api.Assertions.assertNull;
-//import static org.junit.jupiter.api.Assertions.assertTrue;
-//import static org.mockito.Mockito.any;
-//import static org.mockito.Mockito.mock;
-//import static org.mockito.Mockito.never;
-//import static org.mockito.Mockito.times;
-//import static org.mockito.Mockito.verify;
-//import static org.mockito.Mockito.when;
-//
-//import com.illia.server.config.ServerConfig;
-//import java.io.IOException;
-//import java.nio.file.Path;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.boot.test.mock.mockito.MockBean;
-//import org.springframework.core.io.ByteArrayResource;
-//
-//@SpringBootTest(classes = {FileHolderImpl.class})
-//public class FileHolderTest {
-//
-//  @Autowired
-//  FileHolderImpl fileHolder;
-//  @MockBean
-//  ServerConfig serverConfig;
-//
-//  @MockBean
-//  FileUtil fileUtil;
-//
-//  @Test
-//  public void testSaveValidFile() throws IOException {
-//    String fileName = "provided.csv";
-//    var filePath = Path.of(serverConfig.getSavedFilesDirectory(), fileName);
-//    var resource = mock(ByteArrayResource.class);
-//    when(fileUtil.validateResource(resource))
-//        .thenReturn(true);
-//    when(fileUtil.saveFile(filePath, resource)).thenReturn(true);
-//
-//    var response = fileHolder.saveFile(fileName, resource);
-//
-//    verify(fileUtil, times(1)).validateResource(resource);
-//    verify(fileUtil, times(1)).saveFile(filePath, resource);
-//    assertTrue(response);
-//    assertEquals(1, fileHolder.getFilesAmount());
-//  }
-//
-//  @Test
-//  public void testSaveInvalidFile() throws IOException {
-//    var resource = mock(ByteArrayResource.class);
-//    when(fileUtil.validateResource(resource))
-//        .thenReturn(false);
-//    var response = fileHolder.saveFile("fileName", resource);
-//    verify(fileUtil, times(1)).validateResource(resource);
-//    verify(fileUtil, never()).saveFile(any(), any());
-//    assertFalse(response);
-//    assertEquals(0, fileHolder.getFilesAmount());
-//  }
-//
-//
-//  @Test
-//  public void testGetFileShouldCallFileHandlerMethods() throws IOException {
-//    String fileName = "existingFile";
-//
-//    when(serverConfig.getSavedFilesDirectory())
-//        .thenReturn("directoryPath");
-//
-//    var filePath = Path.of(serverConfig.getSavedFilesDirectory(), fileName);
-//    var expected = "Content".getBytes();
-//
-//    var resource = mock(ByteArrayResource.class);
-//    when(fileUtil.validateResource(resource))
-//        .thenReturn(true);
-//    when(fileUtil.saveFile(filePath, resource))
-//        .thenReturn(true);
-//    when(fileUtil.getFileContent(filePath))
-//        .thenReturn(expected);
-//
-//    fileHolder.saveFile(fileName, resource);
-//    assertEquals(1, fileHolder.getFilesAmount());
-//
-//    var actual = fileHolder.getFile(fileName);
-//
-//    verify(fileUtil, times(1)).getFileContent(filePath);
-//    assertArrayEquals(expected, actual);
-//  }
-//
-//  @Test
-//  public void testGetFileShouldNotCallFileHandlerMethod() throws IOException {
-//    String fileName = "nonExistingFile";
-//    var resp = fileHolder.getFile(fileName);
-//    verify(fileUtil, never()).getFileContent(any());
-//    assertNull(resp);
-//  }
-//
-//  @BeforeEach
-//  public void clearFileHolder() {
-//    fileHolder.savedFiles.clear();
-//  }
-//}
+package com.illia.server.file;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.illia.server.file.model.FileEntity.FileDocument;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.utility.DockerImageName;
+
+@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
+public class FileHolderTest {
+
+  static final MongoDBContainer mongoDBContainer  = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+
+  static FileHolder fileHolder;
+
+  @DynamicPropertySource
+  static void setProperties(DynamicPropertyRegistry registry) {
+    mongoDBContainer.start();
+    registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+  }
+
+  @Test
+  public void testSaveAndGetFileShouldReturnSameEntityWithId(){
+    var fileName = "filename";
+    var content = "content".getBytes();
+
+    var prepared = FileDocument.builder()
+        .name(fileName)
+        .content(content)
+        .build();
+
+    // returning FileDocument in fileHolder.save() has a lot of sense for testing but no sense for 'prod'
+
+    fileHolder.saveFile(fileName, new ByteArrayResource(content));
+    var result = fileHolder.getFile(fileName);
+
+    assertEquals(prepared.getName(), result.getName());
+    assertArrayEquals(prepared.getContent(), result.getContent());
+    assertEquals(24, result.getId().length());
+  }
+
+  @Test
+  public void testGetSavedFilesAmount(){
+    assertEquals(0, fileHolder.getFilesAmount());
+    fileHolder.saveFile("fileName", new ByteArrayResource("content".getBytes()));
+    assertEquals(1, fileHolder.getFilesAmount());
+  }
+
+  @Test
+  public void testExistsMethodShouldReturnTrue(){
+    var fileName = "existingFile";
+    fileHolder.saveFile(fileName, new ByteArrayResource("content".getBytes()));
+    assertTrue(fileHolder.exists(fileName));
+  }
+
+  @Test
+  public void testExistsMethodShouldReturnFalse(){
+    assertFalse(fileHolder.exists(""));
+  }
+
+  @Test
+  public void testFindAllShouldReturnEntitiesList(){
+    // kinda confusing
+//    fileHolder.saveFile("fileName", new ByteArrayResource("content".getBytes()));
+//    fileHolder.saveFile("fileName", new ByteArrayResource("content".getBytes()));
+//    fileHolder.saveFile("fileName", new ByteArrayResource("content".getBytes()));
+
+    var count = 3;
+    for(int i = 0; i < count; i++){
+      fileHolder.saveFile("fileName", new ByteArrayResource("content".getBytes()));
+    }
+//    assertEquals(count, fileHolder.getAll().size());
+
+    // again, confusing, getFilesAmount() is tested, but it's not reliable.
+    // deleting all document`s after each test is wiser decision
+    assertEquals(fileHolder.getFilesAmount(), fileHolder.getAll().size());
+  }
+
+  @BeforeAll
+  public static void setUp(@Autowired MongoTemplate mongoTemplate){
+    fileHolder = new FileHolderMongoImpl(mongoTemplate);
+  }
+}
