@@ -8,9 +8,9 @@ import org.springframework.core.io.ByteArrayResource;
 
 public interface FileHolder {
 
-  FileDocument getFile(String fileName) throws RequestProcessorException;
+  FileDocument getFile(String fileName) ;
 
-  FileDocument saveFile(String fileName, ByteArrayResource byteArrayResource) throws RequestProcessorException;
+  void saveFile(String fileName, ByteArrayResource byteArrayResource) ;
 
   long getFilesAmount();
 

@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.MongoClientFactoryBean;
 public class DatasourceConfig {
 
   @Bean
-  public MongoClientFactoryBean mongo() throws Exception {
+  public MongoClientFactoryBean mongoClientFactoryBean() throws Exception {
     String connectionString;
 
     if((connectionString = System.getenv("mongodb-connection-uri")) == null){

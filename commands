@@ -1,0 +1,2 @@
+MongoDB container start on default ports
+docker run --name mongo-with-volume -v D:/projects/DemoProject1/mongo-volume:/data/db -p 27017:27017 mongo:latest
