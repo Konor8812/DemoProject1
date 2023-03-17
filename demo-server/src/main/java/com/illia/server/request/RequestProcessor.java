@@ -1,5 +1,6 @@
 package com.illia.server.request;
 
+import com.illia.server.file.FileHolder;
 import com.illia.server.file.FileHolderMongoImpl;
 import com.illia.server.file.model.FileEntity.FileDocument;
 import lombok.extern.slf4j.Slf4j;
@@ -13,36 +14,27 @@ import org.springframework.stereotype.Service;
 public class RequestProcessor {
 
   @Autowired
-  private FileHolderMongoImpl fileHolder;
+  private FileHolder fileHolder;
 
-  public FileDocument proceedDownloadFile(String fileName) throws RequestProcessorException {
+  public FileDocument proceedDownloadFile(String fileName) {
     return fileHolder.getFile(fileName);
   }
 
-
   public String proceedSaveFile(String fileName, ByteArrayResource byteArrayResource, boolean overwrite) throws RequestProcessorException {
-    if (!overwrite && fileHolder.exists(fileName)) {
+    if(fileName == null || fileName.isBlank()){
+      throw new RequestProcessorException("File with such name can`t be stored!");
+    }else if(byteArrayResource == null || byteArrayResource.contentLength() == 0){
+      throw new RequestProcessorException("Empty file can't be stored!");
+    }else if (!overwrite && fileHolder.exists(fileName)) {
      throw new RequestProcessorException("File with such name already stored on server. " +
           "Consider adding overwrite=true request header to overwrite existing file or change file name");
     }
-    return new String(fileHolder.saveFile(fileName, byteArrayResource).getContent());
-  }
-
-
-  public String getAllSavedFiles(){
-    StringBuilder responseBuilder = new StringBuilder();
-    fileHolder.getAll()
-        .forEach(x -> responseBuilder
-            .append(x.getName())
-            .append(" | ")
-            .append(x.getContent().length)
-            .append(System.lineSeparator()));
-    return responseBuilder.toString();
+    fileHolder.saveFile(fileName, byteArrayResource);
+    return String.format("File %s saved successfully on server", fileName);
   }
 
   public long getFilesAmount() {
     return fileHolder.getFilesAmount();
   }
-
 
 }

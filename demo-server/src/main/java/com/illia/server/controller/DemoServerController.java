@@ -40,14 +40,15 @@ public class DemoServerController {
   }
 
 
-  @GetMapping("/savedFilesAmount")
+  @GetMapping("/count")
   public ResponseEntity<Long> getAmount() {
     return ResponseEntity.ok(requestProcessor.getFilesAmount());
   }
 
+  // to implement
   @GetMapping("/all")
-  public ResponseEntity<String> getAll() { // render on server/client ?
-    return ResponseEntity.ok(requestProcessor.getAllSavedFiles());
+  public ResponseEntity<String> getAll() {
+    return ResponseEntity.ok("");
   }
 
 
