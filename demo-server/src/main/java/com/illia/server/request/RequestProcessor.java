@@ -1,12 +1,10 @@
 package com.illia.server.request;
 
 import com.illia.server.file.FileHolder;
-import com.illia.server.file.FileHolderMongoImpl;
 import com.illia.server.file.model.FileEntity.FileDocument;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,8 +14,12 @@ public class RequestProcessor {
   @Autowired
   private FileHolder fileHolder;
 
-  public FileDocument proceedDownloadFile(String fileName) {
-    return fileHolder.getFile(fileName);
+  public FileDocument proceedDownloadFile(String fileName) throws RequestProcessorException{
+    var fileDocument = fileHolder.getFile(fileName);
+    if(fileDocument == null){
+      throw new RequestProcessorException("No such file!");
+    }
+    return fileDocument;
   }
 
   public String proceedSaveFile(String fileName, ByteArrayResource byteArrayResource, boolean overwrite) throws RequestProcessorException {
