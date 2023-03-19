@@ -1,6 +1,5 @@
 package com.illia.server.controller;
 
-import com.illia.server.file.model.FileEntity.FileDocument;
 import com.illia.server.request.RequestProcessor;
 import com.illia.server.request.RequestProcessorException;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,6 @@ public class DemoServerController {
     return ResponseEntity.ok(requestProcessor.getFilesAmount());
   }
 
-  // to implement
   @GetMapping("/all")
   public ResponseEntity<String> getAll() {
     return ResponseEntity.ok("");

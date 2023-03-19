@@ -4,6 +4,7 @@ import com.illia.server.file.model.FileEntity.FileDocument;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.mongodb.core.FindAndReplaceOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -26,11 +27,15 @@ public class FileHolderMongoImpl implements FileHolder {
   }
 
   @Override
-    public void saveFile(String fileName, ByteArrayResource byteArrayResource) {
-    mongoTemplate.save(FileDocument.builder()
+  public void saveFile(String fileName, ByteArrayResource byteArrayResource) {
+    mongoTemplate.findAndReplace(Query.query(Criteria
+            .where("name")
+            .is(fileName)),
+        FileDocument.builder()
             .content(byteArrayResource.getByteArray())
             .name(fileName)
             .build(),
+        FindAndReplaceOptions.options().upsert(),
         "Files");
   }
 
@@ -45,7 +50,6 @@ public class FileHolderMongoImpl implements FileHolder {
         .exists(Query.query(Criteria
                 .where("name")
                 .is(fileName)),
-            byte[].class,
             "Files");
   }
 
@@ -55,7 +59,7 @@ public class FileHolderMongoImpl implements FileHolder {
   }
 
 
-  public FileHolderMongoImpl(@Autowired MongoTemplate mongoTemplate){
+  public FileHolderMongoImpl(@Autowired MongoTemplate mongoTemplate) {
     this.mongoTemplate = mongoTemplate;
   }
 

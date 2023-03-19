@@ -1,10 +1,6 @@
 package com.illia.server.request;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -14,10 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.illia.server.file.FileHolder;
-import com.illia.server.request.RequestProcessor;
 import com.illia.server.file.model.FileEntity.FileDocument;
-import java.io.File;
-import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,7 +43,7 @@ public class RequestProcessorTest {
   @Test
   public void proceedUploadFileRequestWithOverwriteFlagTrue() throws RequestProcessorException {
     var fileName = "fileName";
-    var resource = mock(ByteArrayResource.class);
+    var resource = new ByteArrayResource("content".getBytes());
 
     assertEquals(String.format("File %s saved successfully on server", fileName),
         requestProcessor.proceedSaveFile(fileName, resource, true));
@@ -60,9 +53,9 @@ public class RequestProcessorTest {
   }
 
   @Test
-  public void proceedUploadExistingFileRequestWithOverwriteFlagFalse() throws RequestProcessorException {
+  public void proceedUploadExistingFileRequestWithOverwriteFlagFalse() {
     var fileName = "fileName";
-    var resource = mock(ByteArrayResource.class);
+    var resource = new ByteArrayResource("content".getBytes());
     when(fileholder.exists(eq(fileName)))
         .thenReturn(true);
 

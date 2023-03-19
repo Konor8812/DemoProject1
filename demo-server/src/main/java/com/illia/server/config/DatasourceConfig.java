@@ -5,6 +5,7 @@ import com.mongodb.ConnectionString;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoClientFactoryBean;
@@ -13,12 +14,12 @@ import org.springframework.data.mongodb.core.MongoClientFactoryBean;
 public class DatasourceConfig {
 
   @Bean
-  public MongoClientFactoryBean mongoClientFactoryBean() throws Exception {
-    String connectionString;
-
-    if((connectionString = System.getenv("mongodb-connection-uri")) == null){
-      if ((connectionString = readConnectionString()) == null){
-        throw new Exception();
+  public MongoClientFactoryBean mongoClientFactoryBean(@Value("${spring.data.mongodb.uri}") String connectionString) throws Exception {
+    if (connectionString == null) {
+      if((connectionString = System.getenv("mongodb-connection-uri")) == null){
+        if ((connectionString = readConnectionString()) == null){
+          throw new Exception();
+        }
       }
     }
 
