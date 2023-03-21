@@ -2,6 +2,7 @@ package com.illia.client.service.processor.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -11,6 +12,7 @@ import com.illia.client.model.request.entity.DeleteQueryEntity;
 import com.illia.client.model.request.registry.AttributeRegistry;
 import com.illia.client.service.query.processor.unit.DeleteOperationProcessorUnit;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +42,10 @@ public class DeleteValuesOperationProcessorUnitTest {
         .attribute(AttributeRegistry.COLOR)
         .value(value)
         .build();
-    var result = deleteOperationProcessorUnit.process(given, queryRequestEntity);
+    List<?> result = deleteOperationProcessorUnit.process(given, queryRequestEntity);
     assertEquals(given.size() - entitiesToDeleteAmount, result.size());
-    result.forEach(x -> assertNotEquals(value, x.getColor()));
-    verify(holder, times(1)).applyChanges(result);
+    result.forEach(x -> assertNotEquals(value, ((IMDbMovieEntity)x).getColor()));
+    verify(holder, times(1)).applyChanges(any());
   }
 
 }

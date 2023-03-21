@@ -9,7 +9,9 @@ import lombok.Getter;
     property = "operation")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = SortQueryEntity.class, name = "SORT"),
-    @JsonSubTypes.Type(value = DeleteQueryEntity.class, name = "DELETE")
+    @JsonSubTypes.Type(value = DeleteQueryEntity.class, name = "DELETE"),
+    @JsonSubTypes.Type(value = AverageQueryEntity.class, name = "AVERAGE"),
+    @JsonSubTypes.Type(value = CountQueryEntity.class, name = "COUNT")
 })
 @Getter
 public abstract class QueryEntity {

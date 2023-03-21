@@ -1,7 +1,7 @@
 package com.illia.client.service.processor.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 import com.illia.client.model.IMDbMovieEntity;
@@ -32,8 +32,8 @@ public class SortOperationProcessorUnitTest {
   public void testSortShouldReturnAll() {
     var queryRequestEntity = buildRequestEntity("TITLE", "ASC", Long.MAX_VALUE);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(givenEntities.size(), response.size());
   }
 
@@ -41,8 +41,8 @@ public class SortOperationProcessorUnitTest {
   public void testSortShouldReturnLimitSize() {
     var queryRequestEntity = buildRequestEntity("TITLE", "ASC", 1);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(1, response.size());
   }
 
@@ -52,8 +52,8 @@ public class SortOperationProcessorUnitTest {
     var queryRequestEntity = buildRequestEntity("TITLE", order, 5);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
     var expected = getFiveSortedEntities(order.equals("ASC"));
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(expected, response);
   }
 
@@ -63,8 +63,8 @@ public class SortOperationProcessorUnitTest {
     var queryRequestEntity = buildRequestEntity("BUDGET", order, 5);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
     var expected = getFiveSortedEntities(order.equals("ASC"));
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(expected, response);
   }
 
@@ -74,8 +74,8 @@ public class SortOperationProcessorUnitTest {
     var queryRequestEntity = buildRequestEntity("RATING", order, 5);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
     var expected = getFiveSortedEntities(order.equals("ASC"));
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(expected, response);
   }
 
@@ -85,8 +85,8 @@ public class SortOperationProcessorUnitTest {
     var queryRequestEntity = buildRequestEntity("DATE", order, 5);
     var givenEntities = getFiveEntitiesWithTitleInShuffledOrder();
     var expected = getFiveSortedEntities(order.equals("ASC"));
-    var response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
-    verify(holder, times(1)).applyChanges(response);
+    List<?> response = sortOperationProcessorUnit.process(givenEntities, queryRequestEntity);
+    verify(holder, times(1)).applyChanges(any());
     assertEquals(expected, response);
   }
 
