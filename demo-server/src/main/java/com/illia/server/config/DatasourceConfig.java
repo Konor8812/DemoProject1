@@ -14,8 +14,8 @@ import org.springframework.data.mongodb.core.MongoClientFactoryBean;
 public class DatasourceConfig {
 
   @Bean
-  public MongoClientFactoryBean mongoClientFactoryBean(@Value("${spring.data.mongodb.uri}") String connectionString) throws Exception {
-    if (connectionString == null) {
+  public MongoClientFactoryBean mongoClientFactoryBean(@Value(value = "${spring.data.mongodb.uri:}") String connectionString) throws Exception {
+    if (connectionString == null || connectionString.isBlank()) {
       if((connectionString = System.getenv("mongodb-connection-uri")) == null){
         if ((connectionString = readConnectionString()) == null){
           throw new Exception();

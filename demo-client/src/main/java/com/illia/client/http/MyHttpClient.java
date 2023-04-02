@@ -10,4 +10,6 @@ public interface MyHttpClient {
   ResponseEntity<String> performUploadFileRequest(String fileName, ByteArrayResource resource, boolean overwrite) throws FileHandlingException;
 
   ResponseEntity<byte[]> performDownloadFileRequest(String fileName) throws FileHandlingException;
+
+  ResponseEntity<String> getAllSavedFiles();
 }

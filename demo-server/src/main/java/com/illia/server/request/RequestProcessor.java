@@ -2,6 +2,7 @@ package com.illia.server.request;
 
 import com.illia.server.file.FileHolder;
 import com.illia.server.file.model.FileEntity.FileDocument;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -37,6 +38,12 @@ public class RequestProcessor {
 
   public long getFilesAmount() {
     return fileHolder.getFilesAmount();
+  }
+
+  public String getAllSavedFiles(){
+    return fileHolder.getAll().stream()
+        .map(x -> String.format("File %s is %d bytes", x.getName(), x.getContent().length))
+        .collect(Collectors.joining(System.lineSeparator()));
   }
 
 }

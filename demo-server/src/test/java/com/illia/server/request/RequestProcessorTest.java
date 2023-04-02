@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.illia.server.file.FileHolder;
 import com.illia.server.file.model.FileEntity.FileDocument;
+import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -78,4 +79,25 @@ public class RequestProcessorTest {
     verify(fileholder, times(1)).getFilesAmount();
   }
 
+  @Test
+  public void getAllSavedFilesShouldMapListToString(){
+    var preparedFileDocumentsList = new ArrayList<FileDocument>();
+    var doc1 = FileDocument.builder()
+        .name("Filename1")
+        .content(new byte[1])
+        .build();
+    var doc2 =FileDocument.builder()
+        .name("Filename2")
+        .content(new byte[2])
+        .build();
+    preparedFileDocumentsList.add(doc1);
+    preparedFileDocumentsList.add(doc2);
+    when(fileholder.getAll())
+        .thenReturn(preparedFileDocumentsList);
+
+    var expected = String.format("File %s is %d bytes", doc1.getName(), doc1.getContent().length)
+        + System.lineSeparator()
+        + String.format("File %s is %d bytes", doc2.getName(), doc2.getContent().length);
+    assertEquals(expected, requestProcessor.getAllSavedFiles());
+  }
 }

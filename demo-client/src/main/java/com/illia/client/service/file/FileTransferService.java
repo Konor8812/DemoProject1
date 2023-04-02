@@ -31,4 +31,7 @@ public class FileTransferService {
     return fileHandlingService.saveFile(fileName, client.performDownloadFileRequest(fileName).getBody(), true);
   }
 
+  public ResponseEntity<String> getAllSavedFiles(){
+    return client.getAllSavedFiles();
+  }
 }

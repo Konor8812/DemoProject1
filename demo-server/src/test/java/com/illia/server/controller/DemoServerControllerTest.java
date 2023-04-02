@@ -74,12 +74,19 @@ public class DemoServerControllerTest {
     verify(requestProcessor, times(1)).proceedDownloadFile(any());
   }
 
-  // to implement
-  // @Test
-  public void savedFileAmountTest() throws Exception {
-    mvc.perform(get("/demo/all"))
+   @Test
+  public void savedFileAmountTestShouldInvokeRequestProcessorMethod() throws Exception {
+    mvc.perform(get("/demo/count"))
         .andExpect(status().isOk());
-
+    verify(requestProcessor, times(1))
+        .getFilesAmount();
   }
 
+  @Test
+  public void getAllFilesAmountShouldInvokeRequestProcessorMethod() throws Exception {
+    mvc.perform(get("/demo/all"))
+        .andExpect(status().isOk());
+    verify(requestProcessor, times(1))
+        .getAllSavedFiles();
+  }
 }

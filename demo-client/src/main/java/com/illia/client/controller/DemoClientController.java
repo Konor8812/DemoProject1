@@ -62,6 +62,11 @@ public class DemoClientController {
     return ResponseEntity.ok().body(queryProcessingService.performOperation(queryEntity));
   }
 
+  @GetMapping("/all")
+  public ResponseEntity<String> getAllFilesList() {
+    return fileTransferService.getAllSavedFiles();
+  }
+
   @ExceptionHandler(value = {QueryProcessingException.class})
   public ResponseEntity<String> handleQueryProcessingException(Exception ex) {
     return ResponseEntity.badRequest().body(ex.getMessage());

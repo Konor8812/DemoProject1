@@ -1,7 +1,9 @@
 package com.illia.server.controller;
 
+import com.illia.server.file.model.FileEntity.FileDocument;
 import com.illia.server.request.RequestProcessor;
 import com.illia.server.request.RequestProcessorException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -33,9 +35,8 @@ public class DemoServerController {
 
 
   @GetMapping("/downloadFile")
-  public ResponseEntity<Object> downloadFile(@RequestParam(name = "fileName") String fileName) throws RequestProcessorException {
-    // reasonable to return ResponseEntity<FileDocument> instead? Parse on client
-    return ResponseEntity.ok().body(requestProcessor.proceedDownloadFile(fileName).getContent());
+  public ResponseEntity<FileDocument> downloadFile(@RequestParam(name = "fileName") String fileName) throws RequestProcessorException {
+    return ResponseEntity.ok().body(requestProcessor.proceedDownloadFile(fileName));
   }
 
 
@@ -46,7 +47,7 @@ public class DemoServerController {
 
   @GetMapping("/all")
   public ResponseEntity<String> getAll() {
-    return ResponseEntity.ok("");
+    return ResponseEntity.ok(requestProcessor.getAllSavedFiles());
   }
 
 
