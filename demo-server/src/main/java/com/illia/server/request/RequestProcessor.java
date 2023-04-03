@@ -36,8 +36,8 @@ public class RequestProcessor {
     return String.format("File %s saved successfully on server", fileName);
   }
 
-  public long getFilesAmount() {
-    return fileHolder.getFilesAmount();
+  public String getFilesAmount() {
+    return String.valueOf(fileHolder.getFilesAmount());
   }
 
   public String getAllSavedFiles(){

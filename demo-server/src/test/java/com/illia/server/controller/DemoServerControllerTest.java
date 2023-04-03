@@ -1,5 +1,6 @@
 package com.illia.server.controller;
 
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -22,6 +23,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = DemoServerController.class)
@@ -57,18 +60,19 @@ public class DemoServerControllerTest {
 
   @Test
   public void downloadFileTestShouldBeOk() throws Exception {
-    when(requestProcessor.proceedDownloadFile("existingFile"))
-        .thenReturn(mock(FileDocument.class));
-    mvc.perform(get("/demo/downloadFile?fileName=existingFile"))
+    var fileName = "existingFile";
+    mvc.perform(get("/demo/downloadFile?fileName=existingFile")
+            .contentType("application/json"))
         .andExpect(status().isOk());
-    verify(requestProcessor, times(1)).proceedDownloadFile("existingFile");
+    verify(requestProcessor, times(1)).proceedDownloadFile(fileName);
   }
 
   @Test
   public void downloadFileShouldHandleException() throws Exception {
     when(requestProcessor.proceedDownloadFile(any()))
         .thenThrow(new RequestProcessorException("rpe"));
-    mvc.perform(get("/demo/downloadFile?fileName="))
+    mvc.perform(get("/demo/downloadFile?fileName=")
+            .contentType("application/json"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(Matchers.equalTo("rpe")));
     verify(requestProcessor, times(1)).proceedDownloadFile(any());
@@ -76,7 +80,9 @@ public class DemoServerControllerTest {
 
    @Test
   public void savedFileAmountTestShouldInvokeRequestProcessorMethod() throws Exception {
-    mvc.perform(get("/demo/count"))
+
+    mvc.perform(get("/demo/count")
+            .contentType("application/json"))
         .andExpect(status().isOk());
     verify(requestProcessor, times(1))
         .getFilesAmount();

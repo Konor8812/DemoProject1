@@ -26,7 +26,7 @@ public class DatasourceConfig {
   }
 
   private boolean isConnectionStringValid(String connectionString){
-    return connectionString == null || connectionString.isBlank();
+    return connectionString != null && !connectionString.isBlank();
   }
 
   private String getConnectionStringFromEnvironment(){

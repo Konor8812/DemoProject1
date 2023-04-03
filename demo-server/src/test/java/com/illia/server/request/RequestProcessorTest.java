@@ -75,7 +75,7 @@ public class RequestProcessorTest {
     when(fileholder.getFilesAmount())
         .thenReturn(1L);
 
-    assertEquals(1, requestProcessor.getFilesAmount());
+    assertEquals("1", requestProcessor.getFilesAmount());
     verify(fileholder, times(1)).getFilesAmount();
   }
 

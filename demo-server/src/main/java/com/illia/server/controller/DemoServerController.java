@@ -34,14 +34,14 @@ public class DemoServerController {
   }
 
 
-  @GetMapping("/downloadFile")
+  @GetMapping(value = "/downloadFile", consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<FileDocument> downloadFile(@RequestParam(name = "fileName") String fileName) throws RequestProcessorException {
     return ResponseEntity.ok().body(requestProcessor.proceedDownloadFile(fileName));
   }
 
 
-  @GetMapping("/count")
-  public ResponseEntity<Long> getAmount() {
+  @GetMapping(value = "/count", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public ResponseEntity<String> getAmount() {
     return ResponseEntity.ok(requestProcessor.getFilesAmount());
   }
 

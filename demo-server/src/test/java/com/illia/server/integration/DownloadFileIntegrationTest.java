@@ -15,6 +15,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 
 @AutoConfigureMockMvc
@@ -38,20 +39,21 @@ public class DownloadFileIntegrationTest {
   @Test
   public void downloadExistingFileTestShouldReturnFileDocumentFromDB() throws Exception {
     var fileName = "existingFile";
-    var fileContent = "content".getBytes();
 
     var prepared = FileDocument.builder()
         .name(fileName)
-        .content(fileContent)
+        .content("content".getBytes())
         .build();
     mongoTemplate.save(prepared, "Files");
 
-    assertArrayEquals(fileContent,
-        mvc.perform(get(String.format("/demo/downloadFile?fileName=%s", fileName)))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsByteArray());
+    var response = mvc.perform(get(String.format("/demo/downloadFile?fileName=%s", fileName))
+            .contentType("application/json"))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    assertEquals(prepared, new ObjectMapper().readValue(response, FileDocument.class));
   }
 
   @Test
@@ -59,7 +61,8 @@ public class DownloadFileIntegrationTest {
     var fileName = "nonExistingFile";
 
     assertEquals("No such file!",
-        mvc.perform(get(String.format("/demo/downloadFile?fileName=%s", fileName)))
+        mvc.perform(get(String.format("/demo/downloadFile?fileName=%s", fileName))
+                .contentType("application/json"))
             .andExpect(status().isBadRequest())
             .andReturn()
             .getResponse()
