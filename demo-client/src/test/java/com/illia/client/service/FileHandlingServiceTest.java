@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.illia.client.config.ClientConfig;
+import com.illia.client.model.file.FileEntity;
 import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.file.FileUtils;
@@ -48,11 +49,15 @@ public class FileHandlingServiceTest {
   public void saveFileTestShouldCallFileUtilsMethod(boolean overwriteFlag) {
     var fileName = "fileName";
     var content = new byte[]{};
+    var preparedFileEntity = FileEntity.builder()
+        .name(fileName)
+        .content(content)
+        .build();
     when(clientConfig.getDownloadedFilesDirectoryPrefix())
         .thenReturn("directoryPath/");
     var expectedPath = Path.of(clientConfig.getDownloadedFilesDirectoryPrefix(), fileName);
 
-    fileHandlingService.saveFile(fileName, content, overwriteFlag);
+    fileHandlingService.saveFile(preparedFileEntity, overwriteFlag);
     if (overwriteFlag) {
       verify(fileUtils, times(1)).deleteFileIfExists(expectedPath);
     }

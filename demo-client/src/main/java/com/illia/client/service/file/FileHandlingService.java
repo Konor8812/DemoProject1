@@ -1,6 +1,7 @@
 package com.illia.client.service.file;
 
 import com.illia.client.config.ClientConfig;
+import com.illia.client.model.file.FileEntity;
 import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,12 +21,12 @@ public class FileHandlingService {
     return fileUtils.resolveMultipartFile(multipartFile);
   }
 
-  public String saveFile(String fileName, byte[] content, boolean overwrite) {
-    var filePath = resolvePath(fileName);
+  public String saveFile(FileEntity fileEntity, boolean overwrite) {
+    var filePath = resolvePath(fileEntity.getName());
     if (overwrite) {
       fileUtils.deleteFileIfExists(filePath);
     }
-    return fileUtils.saveFile(filePath, content);
+    return fileUtils.saveFile(filePath, fileEntity.getContent());
   }
 
   public String deleteFile(String fileName) throws FileHandlingException {

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.illia.client.config.ClientConfig;
+import com.illia.client.model.file.FileEntity;
 import com.illia.client.service.file.FileHandlingException;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +79,7 @@ public class HttpClientTest {
     var expectedUrl = String.format(clientConfig.getBaseUrl(), "/downloadFile?fileName=", fileName);
     client.performDownloadFileRequest(fileName);
     verify(restTemplate, times(1))
-        .getForEntity(eq(expectedUrl), eq(byte[].class));
+        .getForEntity(eq(expectedUrl), eq(FileEntity.class));
   }
 
   @Test
