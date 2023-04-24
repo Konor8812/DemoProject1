@@ -34,3 +34,5 @@ build/
 
 demo-client/downloadedFiles
 demo-server/savedFiles
+mongo-volume
+h2-volume
