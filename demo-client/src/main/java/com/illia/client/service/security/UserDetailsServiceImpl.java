@@ -1,6 +1,6 @@
 package com.illia.client.service.security;
 
-import com.illia.client.service.security.repository.UserRepository;
+import com.illia.client.persistence.security.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

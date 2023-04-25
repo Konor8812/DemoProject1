@@ -1,7 +1,8 @@
-package com.illia.client.service.security;
+package com.illia.client.service.security.jwt;
 
-import com.illia.client.config.JwtSecretProvider;
+import com.illia.client.config.security.JwtSecretProvider;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -27,8 +28,8 @@ public class JwtService {
     return Jwts.builder()
         .setClaims(claims)
         .setSubject(user.getUsername())
-        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60))
-        .setIssuedAt(new Date(System.currentTimeMillis()))
+        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+        .setIssuedAt(new Date(System.currentTimeMillis())) // there'll be issues with dates
         .signWith(getSigningKey(), SignatureAlgorithm.HS256)
         .compact();
   }
@@ -50,7 +51,18 @@ public class JwtService {
   }
 
   public boolean containsValidToken(String jwtHeader) {
-    return jwtHeader != null
-        && jwtHeader.startsWith("Bearer ");
+    if (jwtHeader != null && jwtHeader.startsWith("Bearer ")) {
+      var token = jwtHeader.substring(7);
+      try{
+        return extractAllClaims(token).getExpiration()
+            .before(new Date(System.currentTimeMillis())); // bad dates practice
+      }catch (JwtException ex){
+        return false;
+      }
+    }
+
+    return false;
   }
+
+
 }

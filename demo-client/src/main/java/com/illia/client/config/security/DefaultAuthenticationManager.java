@@ -1,4 +1,4 @@
-package com.illia.client.service.security;
+package com.illia.client.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,10 +20,10 @@ public class DefaultAuthenticationManager implements AuthenticationManager {
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     var username = (String) authentication.getName();
-    var password = (String) authentication.getCredentials();
 
     var user = userDetailsService.loadUserByUsername(username);
     if (user != null) {
+      var password = (String) authentication.getCredentials();
       var userPassword = user.getPassword();
       if (passwordEncoder.matches(password, userPassword)) {
         return new UsernamePasswordAuthenticationToken(username, userPassword);
