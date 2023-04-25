@@ -1,12 +1,10 @@
 package com.illia.client.controller;
 
-import com.illia.client.model.auth.dto.AuthenticationRequestDto;
-import com.illia.client.service.security.AuthenticationException;
+import com.illia.client.model.dto.AuthenticationRequestDto;
 import com.illia.client.service.security.authentication.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

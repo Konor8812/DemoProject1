@@ -1,4 +1,4 @@
-package com.illia.client.model.auth.dto;
+package com.illia.client.model.dto;
 
 import lombok.Builder;
 import lombok.Data;
