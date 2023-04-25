@@ -1,4 +1,4 @@
-package com.illia.client.model.auth;
+package com.illia.client.persistence.security.entity;
 
 import java.util.Collection;
 import java.util.Set;
