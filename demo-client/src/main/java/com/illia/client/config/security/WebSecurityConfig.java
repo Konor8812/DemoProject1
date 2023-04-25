@@ -1,4 +1,4 @@
-package com.illia.client.config;
+package com.illia.client.config.security;
 
 import com.illia.client.filter.JwtAuthenticationFilter;
 import lombok.AllArgsConstructor;
@@ -27,8 +27,9 @@ public class WebSecurityConfig {
     http.csrf().disable()
         .authorizeRequests()
         .antMatchers("/demo/registration", "/demo/login").permitAll()
-        .and().authorizeRequests()
-        .antMatchers("/demo/all").authenticated()
+        .and()
+        .authorizeRequests()
+        .antMatchers("/demo/uploadFile").authenticated()
         .and()
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

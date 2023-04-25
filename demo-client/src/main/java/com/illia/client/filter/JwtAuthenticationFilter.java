@@ -1,7 +1,7 @@
 package com.illia.client.filter;
 
 import com.illia.client.service.security.AuthenticationException;
-import com.illia.client.service.security.JwtService;
+import com.illia.client.service.security.jwt.JwtService;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,11 +31,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     var jwtHeader = request.getHeader("Authorization");
     if (jwtService.containsValidToken(jwtHeader)) {
       var token = jwtHeader.substring(7);
-      var username = jwtService.extractUsername(token);
-      var user = userDetailsService.loadUserByUsername(username);
-      var authentication = createAuthentication(user);
+        var username = jwtService.extractUsername(token);
+        var user = userDetailsService.loadUserByUsername(username);
+        var authentication = createAuthentication(user);
 
-      SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
     filterChain.doFilter(request, response);
   }
