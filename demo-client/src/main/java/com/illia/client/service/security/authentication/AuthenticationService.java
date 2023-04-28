@@ -2,7 +2,7 @@ package com.illia.client.service.security.authentication;
 
 import com.illia.client.persistence.security.entity.Role;
 import com.illia.client.persistence.security.entity.User;
-import com.illia.client.model.dto.AuthenticationRequestDto;
+import com.illia.client.service.security.CustomAuthenticationException;
 import com.illia.client.service.security.jwt.JwtService;
 import com.illia.client.service.security.UserService;
 import java.util.Set;
@@ -19,24 +19,21 @@ public class AuthenticationService {
   AuthenticationManager authenticationManager;
   UserService userService;
 
-  public String processRegistrationRequest(AuthenticationRequestDto authenticationRequestDto) {
+  public String processRegistrationRequest(String username, String password) {
+    var authentication = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(username, password));
     var savedUser = userService.saveUser(User.builder()
-        .username(authenticationRequestDto.getUsername())
-        .password(authenticationRequestDto.getPassword())
+        .username(username)
+        .password((String)authentication.getCredentials())
         .roles(Set.of(Role.USER))
         .build());
-    authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(savedUser.getUsername(), savedUser.getPassword()));
-
     return jwtService.createToken(savedUser);
   }
 
-  public String processLoginRequest(AuthenticationRequestDto authenticationRequestDto) {
-    var user = userService.getUserByUsername(authenticationRequestDto.getUsername());
-
+  public String processLoginRequest(String username, String password) {
     authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        new UsernamePasswordAuthenticationToken(username, password));
 
-    return jwtService.createToken(user);
+    return jwtService.createToken(userService.getUserByUsername(username));
   }
 }

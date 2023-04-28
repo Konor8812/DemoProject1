@@ -1,6 +1,6 @@
 package com.illia.client.filter;
 
-import com.illia.client.service.security.AuthenticationException;
+import com.illia.client.service.security.CustomAuthenticationException;
 import com.illia.client.service.security.jwt.JwtService;
 import java.io.IOException;
 import javax.servlet.FilterChain;
@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (user != null) {
       return new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
     } else {
-      throw new AuthenticationException("No such user / invalid jwt");
+      throw new CustomAuthenticationException("No such user / invalid jwt");
     }
   }
 

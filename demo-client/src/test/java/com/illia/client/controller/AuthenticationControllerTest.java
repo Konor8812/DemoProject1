@@ -7,7 +7,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.ENCODED_PASSWORD;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.RAW_PASSWORD;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.VALID_USERNAME;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.illia.client.model.dto.AuthenticationRequestDto;
 import com.illia.client.service.security.authentication.AuthenticationService;
@@ -17,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 // idk why controller isn't picked by @WebMvcTest but it isn't
@@ -36,58 +39,58 @@ public class AuthenticationControllerTest {
   @Test
   public void registrationRequestTestShouldCallService() throws Exception {
     var authenticationRequestDto = AuthenticationRequestDto.builder()
-        .username("username")
-        .password("password")
+        .username(VALID_USERNAME)
+        .password(RAW_PASSWORD)
         .build();
 
     var requestBody = objectMapper.writeValueAsString(authenticationRequestDto);
 
     mvc.perform(post("/demo/registration")
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
         .andExpect(status().isOk());
 
     verify(authenticationService, times(1))
-        .processRegistrationRequest(eq(authenticationRequestDto));
+        .processRegistrationRequest(eq(VALID_USERNAME), eq(RAW_PASSWORD));
 
   }
 
   @Test
   public void registrationRequestWithInvalidBodyShouldBeBadRequest() throws Exception {
     mvc.perform(post("/demo/registration")
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(""))
         .andExpect(status().isBadRequest());
     verify(authenticationService, never())
-        .processRegistrationRequest(any());
+        .processRegistrationRequest(any(), any());
   }
 
 
   @Test
   public void loginRequestTestShouldCallService() throws Exception {
     var authenticationRequestDto = AuthenticationRequestDto.builder()
-        .username("username")
-        .password("password")
+        .username(VALID_USERNAME)
+        .password(RAW_PASSWORD)
         .build();
 
     var requestBody = objectMapper.writeValueAsString(authenticationRequestDto);
 
     mvc.perform(post("/demo/login")
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
         .andExpect(status().isOk());
 
     verify(authenticationService, times(1))
-        .processLoginRequest(eq(authenticationRequestDto));
+        .processLoginRequest(eq(VALID_USERNAME), eq(RAW_PASSWORD));
   }
 
   @Test
   public void loginRequestWithInvalidBodyShouldBeBadRequest() throws Exception {
     mvc.perform(post("/demo/login")
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(""))
         .andExpect(status().isBadRequest());
     verify(authenticationService, never())
-        .processLoginRequest(any());
+        .processLoginRequest(any(), any());
   }
 }

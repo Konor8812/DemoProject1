@@ -1,5 +1,6 @@
 package com.illia.client.config.security;
 
+import com.illia.client.service.security.CustomAuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +31,6 @@ public class DefaultAuthenticationManager implements AuthenticationManager {
       }
     }
 
-    return null;
+    throw new CustomAuthenticationException("Bad credentials");
   }
 }

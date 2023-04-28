@@ -20,16 +20,20 @@ public class AuthenticationController {
   @PostMapping(value = "/registration", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> registrationRequest(
       @RequestBody AuthenticationRequestDto authenticationRequestDto) {
+
     return ResponseEntity.ok(
         authenticationService.processRegistrationRequest(
-           authenticationRequestDto));
+            authenticationRequestDto.getUsername(),
+            authenticationRequestDto.getPassword()));
   }
 
   @PostMapping("/login")
   public ResponseEntity<String> loginRequest(
       @RequestBody AuthenticationRequestDto authenticationRequestDto) {
     return ResponseEntity.ok(
-        authenticationService.processLoginRequest(authenticationRequestDto));
+        authenticationService.processLoginRequest(
+            authenticationRequestDto.getUsername(),
+            authenticationRequestDto.getPassword()));
   }
 
 }

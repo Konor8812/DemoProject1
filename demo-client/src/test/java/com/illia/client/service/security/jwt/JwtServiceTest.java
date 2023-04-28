@@ -1,5 +1,7 @@
 package com.illia.client.service.security.jwt;
 
+import static org.mockito.Mockito.when;
+
 import com.illia.client.config.security.JwtSecretProvider;
 import com.illia.client.persistence.security.entity.User;
 import io.jsonwebtoken.Jwts;
@@ -19,6 +21,8 @@ public class JwtServiceTest {
 
   @Test
   public void shouldReturnValidToken(){
+    when(secretProvider.getEncodedSecret())
+        .thenReturn("12345678123456781234567812345678".getBytes());
     var prepared = User.builder()
         .username("username")
         .password("password")

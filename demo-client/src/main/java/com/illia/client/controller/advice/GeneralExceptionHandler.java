@@ -3,7 +3,7 @@ package com.illia.client.controller.advice;
 import com.illia.client.service.file.FileHandlingError;
 import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.query.QueryProcessingException;
-import com.illia.client.service.security.AuthenticationException;
+import com.illia.client.service.security.CustomAuthenticationException;
 import io.jsonwebtoken.JwtException;
 import java.net.ConnectException;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +43,7 @@ public class GeneralExceptionHandler {
     return ResponseEntity.internalServerError().body("Can't connect to server");
   }
 
-  @ExceptionHandler(value = {AuthenticationException.class, JwtException.class})
+  @ExceptionHandler(value = {CustomAuthenticationException.class, JwtException.class})
   public ResponseEntity<String> handleAuthenticationException(JwtException ex) {
     return ResponseEntity.status(403).body(ex.getMessage());
   }

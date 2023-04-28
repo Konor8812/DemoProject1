@@ -4,19 +4,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.ENCODED_PASSWORD;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.RAW_PASSWORD;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.VALID_USERNAME;
 
+import com.illia.client.constants.TestConstants.AuthenticationTestConstants;
 import com.illia.client.persistence.security.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -36,43 +42,42 @@ public class DefaultAuthenticationManagerTest {
 
   @Test
   public void shouldAuthenticateValidInput() {
-    var username = "username";
-    var password = "password";
-    var validAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-    when(encoder.matches(eq(password), anyString()))
+
+    var validAuthenticationToken = new UsernamePasswordAuthenticationToken(VALID_USERNAME, RAW_PASSWORD);
+    when(encoder.matches(eq(RAW_PASSWORD), anyString()))
         .thenReturn(true);
 
-    when(userDetailsService.loadUserByUsername(eq(username)))
+    when(userDetailsService.loadUserByUsername(eq(VALID_USERNAME)))
         .thenReturn(User.builder()
-            .username(username)
+            .username(VALID_USERNAME)
             .password(ENCODED_PASSWORD)
             .build());
 
     var resp = authenticationManager.authenticate(validAuthenticationToken);
 
-    assertEquals(username, resp.getPrincipal());
-    assertNotEquals(password, resp.getCredentials());
+    assertEquals(VALID_USERNAME, resp.getPrincipal());
+    assertNotEquals(RAW_PASSWORD, resp.getCredentials());
     verify(userDetailsService, times(1))
-        .loadUserByUsername(eq(username));
+        .loadUserByUsername(eq(VALID_USERNAME));
   }
 
   @Test
   public void shouldNotAuthenticateInvalidInput() {
-    var username = "username";
-    var password = "password";
-    var validAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-    when(userDetailsService.loadUserByUsername(eq(username)))
+    var authenticationToken = new UsernamePasswordAuthenticationToken(
+        VALID_USERNAME, RAW_PASSWORD);
+    when(userDetailsService.loadUserByUsername(eq(VALID_USERNAME)))
         .thenReturn(User.builder()
-            .username(username)
-            .password("") // invalid password
+            .username(VALID_USERNAME)
+            .password("")
             .build());
 
-    var resp = authenticationManager.authenticate(validAuthenticationToken);
+    var ex = assertThrows(AuthenticationException.class,
+        () -> authenticationManager.authenticate(authenticationToken));
 
-    assertNull(resp);
+    assertEquals("Bad credentials", ex.getMessage());
 
     verify(userDetailsService, times(1))
-        .loadUserByUsername(eq(username));
+        .loadUserByUsername(eq(VALID_USERNAME));
   }
 
 }
