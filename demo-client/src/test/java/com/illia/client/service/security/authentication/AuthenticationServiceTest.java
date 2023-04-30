@@ -2,6 +2,7 @@ package com.illia.client.service.security.authentication;
 
 
 import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.ENCODED_PASSWORD;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.JWT_VALUE;
 import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.RAW_PASSWORD;
 import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.VALID_USERNAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.illia.client.model.dto.AuthenticationRequestDto;
 import com.illia.client.persistence.security.entity.Role;
 import com.illia.client.persistence.security.entity.User;
 import com.illia.client.service.security.CustomAuthenticationException;
@@ -43,14 +43,15 @@ public class AuthenticationServiceTest {
   @MockBean
   PasswordEncoder passwordEncoder;
 
-  private static final String EXPECTED_TOKEN = "token";
   private static final User preparedUsed = User.builder()
       .username(VALID_USERNAME)
       .password(ENCODED_PASSWORD)
       .roles(Set.of(Role.USER))
       .build();
 
-  private static final Authentication preparedAuthentication = new UsernamePasswordAuthenticationToken(VALID_USERNAME, RAW_PASSWORD);
+  private static final Authentication preparedAuthentication = new UsernamePasswordAuthenticationToken(
+      VALID_USERNAME, RAW_PASSWORD);
+
   @Test
   public void processRegistrationRequestShouldReturnCreatedToken() {
     when(authenticationManager.authenticate(
@@ -61,9 +62,9 @@ public class AuthenticationServiceTest {
         .thenReturn(preparedUsed);
 
     when(jwtService.createToken(eq(preparedUsed)))
-        .thenReturn(EXPECTED_TOKEN);
+        .thenReturn(JWT_VALUE);
 
-    assertEquals(EXPECTED_TOKEN,
+    assertEquals(JWT_VALUE,
         authenticationService.processRegistrationRequest(VALID_USERNAME, RAW_PASSWORD));
 
     verify(authenticationManager, times(1))
@@ -99,9 +100,9 @@ public class AuthenticationServiceTest {
         .thenReturn(preparedUsed);
 
     when(jwtService.createToken(eq(preparedUsed)))
-        .thenReturn(EXPECTED_TOKEN);
+        .thenReturn(JWT_VALUE);
 
-    assertEquals(EXPECTED_TOKEN,
+    assertEquals(JWT_VALUE,
         authenticationService.processLoginRequest(VALID_USERNAME, RAW_PASSWORD));
 
     verify(authenticationManager, times(1))

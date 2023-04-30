@@ -54,8 +54,9 @@ public class JwtService {
     if (jwtHeader != null && jwtHeader.startsWith("Bearer ")) {
       var token = jwtHeader.substring(7);
       try{
-        return extractAllClaims(token).getExpiration()
-            .before(new Date(System.currentTimeMillis())); // bad dates practice
+        return new Date(System.currentTimeMillis())
+            .before(extractAllClaims(token).getExpiration());
+            // bad dates practice
       }catch (JwtException ex){
         return false;
       }

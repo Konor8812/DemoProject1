@@ -20,7 +20,6 @@ public class AuthenticationController {
   @PostMapping(value = "/registration", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> registrationRequest(
       @RequestBody AuthenticationRequestDto authenticationRequestDto) {
-
     return ResponseEntity.ok(
         authenticationService.processRegistrationRequest(
             authenticationRequestDto.getUsername(),

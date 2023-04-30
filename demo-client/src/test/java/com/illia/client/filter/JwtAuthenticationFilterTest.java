@@ -1,5 +1,8 @@
 package com.illia.client.filter;
 
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.JWT_HEADER;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.JWT_VALUE;
+import static com.illia.client.constants.TestConstants.AuthenticationTestConstants.VALID_USERNAME;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,17 +36,14 @@ public class JwtAuthenticationFilterTest {
   @MockBean
   UserDetailsService userDetailsService;
 
-  private static final String JWT_HEADER = "Bearer SOME.JWT.TOKEN";
-  private static final String JWT_VALUE = "SOME.JWT.TOKEN";
-  private static final String USERNAME = "username";
 
   @Test
   public void shouldHandleRequestWithJwtHeaderAndCreateAuthentication() throws Exception {
     when(jwtService.containsValidToken(eq(JWT_HEADER)))
         .thenReturn(true);
     when(jwtService.extractUsername(eq(JWT_VALUE)))
-        .thenReturn(USERNAME);
-    when(userDetailsService.loadUserByUsername(eq(USERNAME)))
+        .thenReturn(VALID_USERNAME);
+    when(userDetailsService.loadUserByUsername(eq(VALID_USERNAME)))
         .thenReturn(mock(UserDetails.class));
 
     var request = new MockHttpServletRequest();
@@ -59,7 +59,7 @@ public class JwtAuthenticationFilterTest {
     verify(jwtService, times(1))
         .extractUsername(eq(JWT_VALUE));
     verify(userDetailsService, times(1))
-        .loadUserByUsername(eq(USERNAME));
+        .loadUserByUsername(eq(VALID_USERNAME));
 
     var authentication = SecurityContextHolder.getContext().getAuthentication();
     assertNotNull(authentication);

@@ -7,6 +7,7 @@ import com.illia.client.service.security.CustomAuthenticationException;
 import io.jsonwebtoken.JwtException;
 import java.net.ConnectException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
@@ -43,8 +44,8 @@ public class GeneralExceptionHandler {
     return ResponseEntity.internalServerError().body("Can't connect to server");
   }
 
-  @ExceptionHandler(value = {CustomAuthenticationException.class, JwtException.class})
-  public ResponseEntity<String> handleAuthenticationException(JwtException ex) {
+  @ExceptionHandler(value = {AuthenticationException.class, JwtException.class})
+  public ResponseEntity<String> handleAuthenticationException(Exception ex) {
     return ResponseEntity.status(403).body(ex.getMessage());
   }
 }

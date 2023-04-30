@@ -37,9 +37,6 @@ public class DefaultAuthenticationManagerTest {
   @MockBean
   UserDetailsService userDetailsService;
 
-  // It is reasonable to create TestConstants
-  private static final String ENCODED_PASSWORD = "$2a$10$iIlKBbk.6Dsv717xaaEuv.NPVRESIPR/BCQLGAhvbHzONTfOyg9cu"; // password
-
   @Test
   public void shouldAuthenticateValidInput() {
 
