@@ -41,12 +41,12 @@ public class DemoServerController {
 
 
   @GetMapping(value = "/count", consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<String> getAmount() {
+  public ResponseEntity<Long> getAmount() {
     return ResponseEntity.ok(requestProcessor.getFilesAmount());
   }
 
   @GetMapping("/all")
-  public ResponseEntity<String> getAll() {
+  public ResponseEntity<List<String>> getAll() {
     return ResponseEntity.ok(requestProcessor.getAllSavedFiles());
   }
 
