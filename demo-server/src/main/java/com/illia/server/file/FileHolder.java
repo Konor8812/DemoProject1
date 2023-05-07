@@ -1,15 +1,18 @@
 package com.illia.server.file;
 
-import java.io.IOException;
+import com.illia.server.file.model.FileEntity.FileDocument;
+import java.util.List;
 import org.springframework.core.io.ByteArrayResource;
 
 public interface FileHolder {
 
-  byte[] getFile(String fileName) throws IOException;
+  FileDocument getFile(String fileName) ;
 
-  boolean saveFile(String fileName, ByteArrayResource byteArrayResource) throws IOException;
+  void saveFile(String fileName, ByteArrayResource byteArrayResource) ;
 
-  Integer getFilesAmount();
+  long getFilesAmount();
 
   boolean exists(String fileName);
+
+  List<FileDocument> getAll();
 }

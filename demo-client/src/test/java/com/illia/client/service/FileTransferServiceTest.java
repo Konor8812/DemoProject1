@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.illia.client.http.MyHttpClient;
+import com.illia.client.model.file.FileEntity;
 import com.illia.client.service.file.FileHandlingException;
 import com.illia.client.service.file.FileHandlingService;
 import com.illia.client.service.file.FileTransferService;
@@ -69,11 +70,14 @@ public class FileTransferServiceTest {
   @Test
   public void downloadFileShouldCallClientAndSaveResponse() throws FileHandlingException {
     var fileName = "fileName";
-    var byteContent = "content".getBytes();
-    ResponseEntity<byte[]> preparedResponse = ResponseEntity.ok().body(byteContent);
+    var preparedFileEntity = FileEntity.builder()
+        .name(fileName)
+        .content("content".getBytes())
+        .build();
+    ResponseEntity<FileEntity> preparedResponse = ResponseEntity.ok().body(preparedFileEntity);
     when(client.performDownloadFileRequest(any()))
         .thenReturn(preparedResponse);
-    when(fileHandlingService.saveFile(eq(fileName), eq(byteContent), eq(true)))
+    when(fileHandlingService.saveFile(eq(preparedFileEntity), eq(true)))
         .thenReturn("ok");
     var resp = fileTransferService.downloadFile(fileName, true);
 

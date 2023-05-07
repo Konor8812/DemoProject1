@@ -60,5 +60,4 @@ public class DemoClientController {
       throws QueryProcessingException {
     return ResponseEntity.ok().body(queryProcessingService.performOperation(queryEntity));
   }
-
 }

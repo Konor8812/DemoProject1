@@ -2,7 +2,7 @@ package com.illia.client.http;
 
 
 import com.illia.client.config.ClientConfig;
-import com.illia.client.service.file.FileHandlingException;
+import com.illia.client.model.file.FileEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -22,6 +22,7 @@ public class MyHttpClientImpl implements MyHttpClient {
 
   private static final String UPLOAD_FILE_BASE_URL = "/uploadFile?fileName=";
   private static final String DOWNLOAD_FILE_BASE_URL = "/downloadFile?fileName=";
+  private static final String GET_ALL_SAVED_FILES_LIST = "/all";
   @Autowired
   private RestTemplate restTemplate;
   @Autowired
@@ -47,9 +48,15 @@ public class MyHttpClientImpl implements MyHttpClient {
   }
 
   @Override
-  public ResponseEntity<byte[]> performDownloadFileRequest(String fileName) {
+  public ResponseEntity<FileEntity> performDownloadFileRequest(String fileName) {
     var url = String.format(clientConfig.getBaseUrl(), DOWNLOAD_FILE_BASE_URL, fileName);
-    return restTemplate.getForEntity(url, byte[].class);
+    return restTemplate.getForEntity(url, FileEntity.class);
+  }
+
+  @Override
+  public ResponseEntity<String> getAllSavedFiles(){
+    var url = String.format(clientConfig.getBaseUrl(), GET_ALL_SAVED_FILES_LIST, ""); //bp
+    return restTemplate.getForEntity(url, String.class);
   }
 
 }

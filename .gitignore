@@ -3,6 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+mongo-client-uri.txt
+mongo-volume
 
 ### STS ###
 .apt_generated

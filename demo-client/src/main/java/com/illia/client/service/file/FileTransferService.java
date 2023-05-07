@@ -1,6 +1,7 @@
 package com.illia.client.service.file;
 
 import com.illia.client.http.MyHttpClient;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,12 @@ public class FileTransferService {
         throw new FileHandlingException("File with such name already exists!");
       }
     }
-    return fileHandlingService.saveFile(fileName, client.performDownloadFileRequest(fileName).getBody(), true);
+
+    return fileHandlingService.saveFile(Objects.requireNonNull(
+            client.performDownloadFileRequest(fileName).getBody()), true);
   }
 
+  public ResponseEntity<String> getAllSavedFiles(){
+    return client.getAllSavedFiles();
+  }
 }
