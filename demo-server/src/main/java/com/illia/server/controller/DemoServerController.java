@@ -1,9 +1,10 @@
 package com.illia.server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.illia.server.file.model.FileEntity.FileDocument;
 import com.illia.server.request.RequestProcessor;
 import com.illia.server.request.RequestProcessorException;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,29 +26,35 @@ public class DemoServerController {
 
   @Autowired
   private RequestProcessor requestProcessor;
+  @Autowired
+  ObjectMapper objectMapper;
 
   @PostMapping(value = "/uploadFile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<String> uploadFile(@RequestParam(name = "fileName") String fileName,
       @RequestHeader(name = "Overwrite", required = false, defaultValue = "false") Boolean overwrite,
-      @RequestPart(required = false, name = "resource") ByteArrayResource byteArrayResource) throws RequestProcessorException {
-    return ResponseEntity.ok(requestProcessor.proceedSaveFile(fileName, byteArrayResource, overwrite));
+      @RequestPart(required = false, name = "resource") ByteArrayResource byteArrayResource)
+      throws RequestProcessorException {
+    return ResponseEntity.ok(
+        requestProcessor.proceedSaveFile(fileName, byteArrayResource, overwrite));
   }
 
 
   @GetMapping(value = "/downloadFile", consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<FileDocument> downloadFile(@RequestParam(name = "fileName") String fileName) throws RequestProcessorException {
+  public ResponseEntity<FileDocument> downloadFile(@RequestParam(name = "fileName") String fileName)
+      throws RequestProcessorException {
     return ResponseEntity.ok().body(requestProcessor.proceedDownloadFile(fileName));
   }
 
 
-  @GetMapping(value = "/count", consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<Long> getAmount() {
-    return ResponseEntity.ok(requestProcessor.getFilesAmount());
+  @GetMapping(value = "/count", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> getAmount() throws JsonProcessingException {
+    return ResponseEntity.ok(objectMapper.writeValueAsString(requestProcessor.getFilesAmount()));
   }
 
-  @GetMapping("/all")
-  public ResponseEntity<List<String>> getAll() {
-    return ResponseEntity.ok(requestProcessor.getAllSavedFiles());
+  @GetMapping(value = "/all", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public ResponseEntity<String> getAll() throws JsonProcessingException {
+    return ResponseEntity
+        .ok(objectMapper.writeValueAsString(requestProcessor.getAllSavedFiles()));
   }
 
 

@@ -1,10 +1,8 @@
 package com.illia.server.controller;
 
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,9 +11,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.illia.server.file.model.FileEntity.FileDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.illia.server.request.RequestProcessor;
 import com.illia.server.request.RequestProcessorException;
+import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,18 +22,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = DemoServerController.class)
+@SpringBootTest(classes = {DemoServerController.class, ObjectMapper.class})
 public class DemoServerControllerTest {
 
   @Autowired
   MockMvc mvc;
-
   @MockBean
   RequestProcessor requestProcessor;
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Test
   public void uploadFileTest() throws Exception {
@@ -78,9 +76,10 @@ public class DemoServerControllerTest {
     verify(requestProcessor, times(1)).proceedDownloadFile(any());
   }
 
-   @Test
+  @Test
   public void savedFileAmountTestShouldInvokeRequestProcessorMethod() throws Exception {
-
+    when(requestProcessor.getFilesAmount())
+        .thenReturn(0L);
     mvc.perform(get("/demo/count")
             .contentType("application/json"))
         .andExpect(status().isOk());
@@ -90,7 +89,10 @@ public class DemoServerControllerTest {
 
   @Test
   public void getAllFilesAmountShouldInvokeRequestProcessorMethod() throws Exception {
-    mvc.perform(get("/demo/all"))
+    when(requestProcessor.getAllSavedFiles())
+        .thenReturn(List.of());
+    mvc.perform(get("/demo/all")
+            .contentType("application/json"))
         .andExpect(status().isOk());
     verify(requestProcessor, times(1))
         .getAllSavedFiles();

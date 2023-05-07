@@ -1,9 +1,10 @@
 package com.illia.server.request;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.when;
 import com.illia.server.file.FileHolder;
 import com.illia.server.file.model.FileEntity.FileDocument;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +34,8 @@ public class RequestProcessorTest {
       .build();
 
   @Test
-  public void proceedDownloadFileRequestRequestShouldCallFileHolder() throws RequestProcessorException {
+  public void proceedDownloadFileRequestRequestShouldCallFileHolder()
+      throws RequestProcessorException {
 
     var fileName = "fileName";
     when(fileholder.getFile(eq(fileName)))
@@ -64,7 +67,7 @@ public class RequestProcessorTest {
         () -> requestProcessor.proceedSaveFile(fileName, resource, false));
 
     assertEquals("File with such name already stored on server. " +
-        "Consider adding overwrite=true request header to overwrite existing file or change file name",
+            "Consider adding overwrite=true request header to overwrite existing file or change file name",
         actualException.getMessage());
 
     verify(fileholder, never()).saveFile(any(), any());
@@ -75,18 +78,18 @@ public class RequestProcessorTest {
     when(fileholder.getFilesAmount())
         .thenReturn(1L);
 
-    assertEquals("1", requestProcessor.getFilesAmount());
+    assertEquals(1, requestProcessor.getFilesAmount());
     verify(fileholder, times(1)).getFilesAmount();
   }
 
   @Test
-  public void getAllSavedFilesShouldMapListToString(){
+  public void getAllSavedFilesShouldMapListToString() {
     var preparedFileDocumentsList = new ArrayList<FileDocument>();
     var doc1 = FileDocument.builder()
         .name("Filename1")
         .content(new byte[1])
         .build();
-    var doc2 =FileDocument.builder()
+    var doc2 = FileDocument.builder()
         .name("Filename2")
         .content(new byte[2])
         .build();
@@ -95,9 +98,9 @@ public class RequestProcessorTest {
     when(fileholder.getAll())
         .thenReturn(preparedFileDocumentsList);
 
-    var expected = String.format("File %s is %d bytes", doc1.getName(), doc1.getContent().length)
-        + System.lineSeparator()
-        + String.format("File %s is %d bytes", doc2.getName(), doc2.getContent().length);
+    var expected = List.of(
+        String.format("File %s is %d bytes", doc1.getName(), doc1.getContent().length),
+        String.format("File %s is %d bytes", doc2.getName(), doc2.getContent().length));
     assertEquals(expected, requestProcessor.getAllSavedFiles());
   }
 }
